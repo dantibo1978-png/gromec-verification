@@ -317,10 +317,14 @@ tbody tr:hover td { background: #f9f8f4; }
       <div class="card-body">
         <div class="dropzone" id="dz">
           <div class="dz-icon">📋</div>
-          <div class="dz-label" id="dz-label">Cliquez ou glissez le PDF ici</div>
+          <div class="dz-label" id="dz-label">Glissez le PDF ici</div>
           <div class="dz-hint">Fichier .pdf — fonctionne avec tous les fournisseurs</div>
-          <input type="file" id="pdf-input" accept=".pdf" style="display:none">
         </div>
+        <input type="file" id="pdf-input" accept=".pdf" style="display:none">
+        <button onclick="document.getElementById('pdf-input').click()" 
+                style="margin-top:.5rem;font-family:var(--font-mono,monospace);font-size:.7rem;padding:.35rem .9rem;background:transparent;border:1px solid var(--rule,#ccc);border-radius:3px;cursor:pointer;color:var(--steel,#333)">
+          📂 Ou cliquez pour sélectionner
+        </button>
         <div class="msg" id="pdf-msg"></div>
         <div id="pdf-preview" style="margin-top:.75rem;font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);max-height:100px;overflow-y:auto;display:none"></div>
       </div>
