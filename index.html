@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vérification Commande — Gromec</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 :root{--bg:#f5f4f0;--sur:#fff;--brd:#e2e0d8;--txt:#1a1a18;--mut:#6b6b64;--acc:#1a3a5c;--acl:#e8eef5;--ok:#1a6b3a;--okb:#e8f5ee;--er:#8b1a1a;--erb:#fdeaea;--wa:#7a4a00;--wab:#fff3dc;--ai:#4a1a6b;--aib:#f0e8f5}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -156,8 +155,6 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
 </div>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
 var pdfItems=[],sapItems=[],allResults=[],dbgLines=[];
 
 // ── DROP ZONE ─────────────────────────────────────────────────────────────────
@@ -189,88 +186,71 @@ function processPDF(file){
   dz.classList.remove('ok');
   var reader=new FileReader();
   reader.onload=function(e){
-    var arr=new Uint8Array(e.target.result);
-    pdfjsLib.getDocument({data:arr}).promise.then(function(pdf){
-      var lines=[],ps=[];
-      for(var i=1;i<=pdf.numPages;i++){
-        ps.push(pdf.getPage(i).then(function(page){
-          return page.getTextContent().then(function(ct){
-            var byY={};
-            ct.items.forEach(function(it){
-              if(!it.str.trim())return;
-              var y=Math.round(it.transform[5]/3)*3;
-              if(!byY[y])byY[y]=[];
-              byY[y].push({str:it.str,x:Math.round(it.transform[4])});
-            });
-            Object.keys(byY).map(Number).sort(function(a,b){return b-a}).forEach(function(y){
-              var line=byY[y].sort(function(a,b){return a.x-b.x}).map(function(p){return '[x='+p.x+']'+p.str}).join('  ');
-              if(line.length>3)lines.push(line);
-            });
-          });
-        }));
-      }
-      Promise.all(ps).then(function(){
-        log('PDF: '+pdf.numPages+' pages, '+lines.length+' lignes');
-        callClaude(lines.join('\n'),file.name,pdf.numPages);
-      });
-    }).catch(function(e){setSB('pdf-sb','e','❌ '+e.message);});
+    var bytes=new Uint8Array(e.target.result);
+    var b64='',CHUNK=8192;
+    for(var i=0;i<bytes.length;i+=CHUNK){
+      b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+CHUNK));
+    }
+    b64=btoa(b64);
+    log('PDF: '+file.name+' ('+Math.round(bytes.length/1024)+'kb)');
+    setSB('pdf-sb','i','⏳ Claude analyse toutes les pages...');
+    fetch('https://claude-proxy.dantibo1978.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5',
+        max_tokens:8000,
+        messages:[{role:'user',content:[
+          {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+          {type:'text',text:
+            'Tu es un expert en vérification de commandes industrielles.\n\n'+
+            'Lis ce bon de confirmation (TOUTES les pages) et extrais ABSOLUMENT TOUS les articles.\n\n'+
+            'Pour chaque article:\n'+
+            '- lineNbr: numéro de ligne\n'+
+            '- code: code/numéro article fournisseur\n'+
+            '- qty: quantité commandée\n'+
+            '- netUnit: prix UNITAIRE par unité (pas le total)\n'+
+            '- netTotal: prix total de la ligne\n\n'+
+            'RÈGLES:\n'+
+            '- netUnit = prix UNE unité. Si qty=3 total=31.75 → netUnit=10.5838\n'+
+            '- ASC: colonne NET (sous LIST) = netUnit\n'+
+            '- MA Stewart: List × Factor = netUnit\n'+
+            '- Inclure TOUS les articles de TOUTES les pages\n\n'+
+            'JSON uniquement sans texte ni backticks:\n'+
+            '{"items":[{"lineNbr":1,"code":"4385003190","qty":3,"netUnit":10.5838,"netTotal":31.75}]}'
+          }
+        ]}]
+      })
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.error)throw new Error(d.error.message);
+      var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
+      log('Claude réponse: '+t.substring(0,400));
+      var p=JSON.parse(t.replace(/```json|```/g,'').trim());
+      pdfItems=(p.items||[]).map(function(i){return{
+        lineNbr:parseInt(i.lineNbr)||1,
+        code:String(i.code||'').trim(),
+        qty:parseInt(i.qty)||1,
+        netUnit:parseFloat(i.netUnit)||0,
+        netTotal:parseFloat(i.netTotal)||0,
+        rawLine:'L'+i.lineNbr+' '+i.code
+      };}).filter(function(i){return i.code&&i.netUnit>0;});
+      log('Articles: '+pdfItems.length);
+      if(pdfItems.length>0){
+        setSB('pdf-sb','o','✅ '+pdfItems.length+' articles extraits');
+        dz.classList.add('ok');
+        document.getElementById('dz-lbl').textContent='✅ '+pdfItems.length+' articles — glissez un autre PDF pour changer';
+        var prev=document.getElementById('pdf-prev');
+        prev.style.display='block';
+        prev.innerHTML='<b style="color:var(--acc)">Aperçu:</b><br>'+
+          pdfItems.slice(0,5).map(function(p){return '<div style="padding:2px 0;border-bottom:1px solid var(--brd)">L'+p.lineNbr+' · '+p.code+' · Qté:'+p.qty+' · <b>$'+p.netUnit.toFixed(4)+'</b></div>';}).join('')+
+          (pdfItems.length>5?'<div>...+'+(pdfItems.length-5)+' autres</div>':'');
+      }else{setSB('pdf-sb','e','❌ Aucun article — voir 🔧 Debug');}
+      checkReady();
+    }).catch(function(e){setSB('pdf-sb','e','❌ '+e.message);log('ERR: '+e.message);checkReady();});
   };
   reader.readAsArrayBuffer(file);
 }
 
-function callClaude(txt,fname,npages){
-  setSB('pdf-sb','i','⏳ Analyse IA ('+npages+' page(s))...');
-  fetch('https://claude-proxy.dantibo1978.workers.dev',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      model:'claude-sonnet-4-5',
-      max_tokens:3000,
-      messages:[{role:'user',content:
-        'Tu es un expert en vérification de commandes industrielles.\n\n'+
-        'Texte extrait du PDF "'+fname+'" avec positions X:\n\n---\n'+
-        txt.substring(0,50000)+'\n---\n\n'+
-        'Extrais TOUS les articles. Pour chaque article:\n'+
-        '- lineNbr: numéro de ligne (1,2,3...)\n'+
-        '- code: code article du fournisseur\n'+
-        '- qty: quantité (entier)\n'+
-        '- netUnit: prix UNITAIRE (pas le total)\n'+
-        '- netTotal: prix total de la ligne\n\n'+
-        'RÈGLE: netUnit = prix pour UNE unité.\n'+
-        'qty=14 total=266.28 → netUnit=19.02\n'+
-        '"Unit Price","Prix unitaire","NET Price" = netUnit\n'+
-        'MA Stewart: List × Factor = netUnit\n\n'+
-        'JSON uniquement sans texte ni backticks:\n'+
-        '{"items":[{"lineNbr":1,"code":"ABC","qty":2,"netUnit":19.02,"netTotal":38.04}]}'
-      }]
-    })
-  }).then(function(r){return r.json();}).then(function(d){
-    if(d.error)throw new Error(d.error.message);
-    var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
-    log('Claude: '+t.substring(0,300));
-    var p=JSON.parse(t.replace(/```json|```/g,'').trim());
-    pdfItems=(p.items||[]).map(function(i){return{
-      lineNbr:parseInt(i.lineNbr)||1,
-      code:String(i.code||'').trim(),
-      qty:parseInt(i.qty)||1,
-      netUnit:parseFloat(i.netUnit)||0,
-      netTotal:parseFloat(i.netTotal)||0,
-      rawLine:'L'+i.lineNbr+' '+i.code
-    };}).filter(function(i){return i.code&&i.netUnit>0;});
-    log('Articles: '+pdfItems.length);
-    if(pdfItems.length>0){
-      setSB('pdf-sb','o','✅ '+pdfItems.length+' articles extraits');
-      dz.classList.add('ok');
-      document.getElementById('dz-lbl').textContent='✅ '+pdfItems.length+' articles — glissez un autre PDF pour changer';
-      var prev=document.getElementById('pdf-prev');
-      prev.style.display='block';
-      prev.innerHTML='<b style="color:var(--acc)">Aperçu:</b><br>'+
-        pdfItems.slice(0,5).map(function(p){return '<div style="padding:2px 0;border-bottom:1px solid var(--brd)">L'+p.lineNbr+' · '+p.code+' · Qté:'+p.qty+' · <b>$'+p.netUnit.toFixed(4)+'</b></div>';}).join('')+
-        (pdfItems.length>5?'<div>...+'+(pdfItems.length-5)+' autres</div>':'');
-    }else{setSB('pdf-sb','e','❌ Aucun article — voir 🔧 Debug');}
-    checkReady();
-  }).catch(function(e){setSB('pdf-sb','e','❌ '+e.message);log('ERR: '+e.message);checkReady();});
-}
 
 // ── SAP ───────────────────────────────────────────────────────────────────────
 document.getElementById('si').addEventListener('input',function(){parseSAP();checkReady();});
