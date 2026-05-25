@@ -329,8 +329,33 @@ function aiMatch(unmSAP,unmPDF,cb){
   fetch('https://claude-proxy.dantibo1978.workers.dev',{
     method:'POST',headers:{'Content-Type':'application/json'},
     body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,messages:[{role:'user',content:
-      'Expert commandes industrielles. Trouve correspondances SAP↔PDF.\nSAP:\n'+sl+'\n\nPDF:\n'+pl+
-      '\n\nJSON uniquement:\n{"matches":[{"sap_idx":0,"pdf_idx":1,"confidence":0.9,"reason":"même code"}]}'
+      'Tu es un expert en vérification de commandes de robinetterie et raccorderie industrielle.\n\n'+
+      'Ton rôle: trouver les correspondances entre articles SAP et PDF qui n\'ont pas été matchés automatiquement.\n\n'+
+      'STRATÉGIES DE MATCHING - applique-les toutes:\n\n'+
+      '1. CODE SIMILAIRE: ignore zéros initiaux, tirets, espaces, majuscules/minuscules\n'+
+      '   Ex: "015-20063" = "15 20063" = "01520063"\n\n'+
+      '2. CODE DANS DESCRIPTION: le code PDF peut apparaître dans la description SAP\n'+
+      '   Ex: PDF code "238T1B6F" → SAP desc contient "238T1B6F"\n\n'+
+      '3. DESCRIPTION SÉMANTIQUE - c\'est le plus important:\n'+
+      '   Compare le TYPE, MATÉRIAU, DIMENSION et NORME:\n'+
+      '   - Types: TEE=TÉ, ELBOW=COUDE, REDUCER=RÉDUCTEUR, COUPLING=MANCHON, CAP=BOUCHON\n'+
+      '     NIPPLE=MAMELON, UNION=UNION, FLANGE=BRIDE, VALVE=VANNE, BUSHING=RÉDUCTION\n'+
+      '   - Matériaux: SS304=ACIER INOX 304, SS316=ACIER INOX 316, BRZ=BRONZE, CI=FONTE\n'+
+      '     GALV=GALVANISÉ, BRASS=LAITON, CS=ACIER CARBONE\n'+
+      '   - Dimensions: 2"X3/8" = 2 X 3/8, 1-1/2 = 1.5, SCH10=SCH 10\n'+
+      '   - Normes: 150LB=150#=150LBS, 2000WOG=2000PSI\n'+
+      '   Ex: "2 X 3/8 150LB FILETE REDUIT HEX 316" = "REDUIT HEXAGONAL ACIER INOXYDABLE 2\" X 3/8\" 316"\n\n'+
+      '4. PRIX ET QUANTITÉ comme confirmation:\n'+
+      '   Si description similaire ET prix proche → confidence élevée\n\n'+
+      '5. LOGIQUE D\'ÉLIMINATION:\n'+
+      '   Si après tous les matchs il reste X articles SAP et X articles PDF non matchés,\n'+
+      '   essaie de les apparier même avec moins de certitude.\n'+
+      '   Si 1 SAP et 1 PDF restants → confidence minimum 0.70\n\n'+
+      'SAP sans correspondance:\n'+sl+'\n\nPDF sans correspondance:\n'+pl+
+      '\n\nRetourne TOUS les matchs possibles, même avec confidence 0.65.\n'+
+      'Explique ton raisonnement dans "reason" (ex: "réducteur hex 316, dim 2x3/8 identiques, prix $8.80 confirme").\n'+
+      'JSON uniquement:\n'+
+      '{"matches":[{"sap_idx":0,"pdf_idx":0,"confidence":0.85,"reason":"même type réducteur hex, matériau 316, dimensions 2x3/8 identiques"}]}'
     }]})
   }).then(function(r){return r.json();}).then(function(d){
     var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
