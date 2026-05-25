@@ -140,7 +140,16 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
         <button class="btn btn-s" onclick="exportXLSX()">📊 Excel (.xlsx)</button>
         <button class="btn btn-s" onclick="exportCSV()">📄 CSV</button>
         <button class="btn btn-s" onclick="window.print()">🖨️ Imprimer</button>
-        <span id="enote" style="font-size:.7rem;color:var(--mut);margin-left:.3rem"></span>
+      </div>
+      <div class="exp" style="border-top:none;padding-top:0;margin-top:.5rem">
+        <button class="btn" onclick="copierPrix()" style="background:#1a6b3a" title="Copie les prix PDF en ordre de ligne SAP — colle directement dans SAP">
+          📋 Copier prix → SAP
+        </button>
+        <button class="btn" onclick="copierQty()" style="background:#1a6b3a" title="Copie les quantités PDF en ordre de ligne SAP — colle directement dans SAP">
+          📋 Copier quantités → SAP
+        </button>
+        <span id="copy-note" style="font-size:.75rem;color:var(--ok);font-weight:bold;margin-left:.4rem"></span>
+        <span id="enote" style="font-size:.7rem;color:var(--mut);margin-left:.4rem"></span>
       </div>
     </div>
   </div>
@@ -464,7 +473,15 @@ function renderTable(rows){
       '<td style="text-align:center;font-weight:bold;color:var(--acc);font-size:.72rem">'+r.sap.lineNbr+'</td>'+
       '<td>'+badge+'</td>'+
       '<td class="mo">'+r.sap.article+'</td>'+
-      '<td class="mo">'+(r.sap.codeManuf||'—')+'</td>'+
+      '<td class="mo">'+(function(){
+        var sc=r.sap.codeManuf||'';
+        var pc=r.pdfItem?r.pdfItem.code:'';
+        // Si le code PDF diffère du code manuf SAP et que ce n'est pas juste un format différent
+        if(sc && pc && sc!==pc && nc(sc)!==nc(pc) && !sc.includes(pc) && !pc.includes(sc)){
+          return '<span style="background:#fff3cd;color:#7a4a00;padding:1px 5px;border-radius:3px;font-weight:bold" title="Code PDF: '+pc+'">'+sc+' ⚠️</span>';
+        }
+        return sc||'—';
+      }())+'</td>'+
       '<td style="max-width:155px;font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+r.sap.desc+'">'+r.sap.desc+'</td>'+
       '<td style="text-align:center">'+r.sap.qty+'</td>'+
       '<td style="text-align:center">'+(pdfQty!==null?pdfQty:'—')+'</td>'+
@@ -486,6 +503,44 @@ function filt(t,btn){
 }
 
 // ── EXPORT ────────────────────────────────────────────────────────────────────
+function copierPrix(){
+  // Trier par numéro de ligne SAP croissant
+  var sorted = allResults.slice().sort(function(a,b){ return a.sap.lineNbr - b.sap.lineNbr; });
+  var lignes = sorted.map(function(r){
+    if(r.status==='nom' || r.pdfUnit===null) return ''; // ligne vide si non trouvé
+    return r.pdfUnit.toFixed(4);
+  });
+  var txt = lignes.join('\n');
+  navigator.clipboard.writeText(txt).then(function(){
+    document.getElementById('copy-note').textContent='✅ '+sorted.length+' prix copiés!';
+    setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
+  }).catch(function(){
+    // Fallback
+    var ta=document.createElement('textarea');
+    ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    document.getElementById('copy-note').textContent='✅ Prix copiés!';
+    setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
+  });
+}
+
+function copierQty(){
+  var sorted = allResults.slice().sort(function(a,b){ return a.sap.lineNbr - b.sap.lineNbr; });
+  var lignes = sorted.map(function(r){
+    if(r.status==='nom' || !r.pdfItem) return '';
+    return r.pdfItem.qty;
+  });
+  var txt = lignes.join('\n');
+  navigator.clipboard.writeText(txt).then(function(){
+    document.getElementById('copy-note').textContent='✅ '+sorted.length+' quantités copiées!';
+    setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
+  }).catch(function(){
+    var ta=document.createElement('textarea');
+    ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    document.getElementById('copy-note').textContent='✅ Quantités copiées!';
+    setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
+  });
+}
+
 function exportXLSX(){
   if(!allResults.length){alert('Aucun résultat.');return;}
   var btn=document.querySelector('button[onclick="exportXLSX()"]');
