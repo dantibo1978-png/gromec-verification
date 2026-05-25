@@ -317,7 +317,7 @@ tbody tr:hover td { background: #f9f8f4; }
       <div class="card-body">
         <div class="dropzone" id="dz">
           <div class="dz-icon">📋</div>
-          <div class="dz-label" id="dz-label">Cliquez, glissez ou collez le PDF ici (Ctrl+V)</div>
+          <div class="dz-label" id="dz-label">Cliquez ou glissez le PDF ici</div>
           <div class="dz-hint">Fichier .pdf — fonctionne avec tous les fournisseurs</div>
           <input type="file" id="pdf-input" accept=".pdf" style="display:none">
         </div>
@@ -431,58 +431,36 @@ var dzEl = document.getElementById('dz');
 dzEl.addEventListener('click', function() {
   document.getElementById('pdf-input').click();
 });
-
-// Coller avec Ctrl+V depuis Outlook ou explorateur
-document.addEventListener('paste', function(e) {
-  var items = (e.clipboardData || e.originalEvent.clipboardData).items;
-  for (var i = 0; i < items.length; i++) {
-    if (items[i].type === 'application/pdf' || items[i].kind === 'file') {
-      var file = items[i].getAsFile();
-      if (file) {
-        loadPDF(file);
-        break;
-      }
-    }
-  }
-});
 document.getElementById('pdf-input').addEventListener('change', function() {
   if (this.files && this.files[0]) loadPDF(this.files[0]);
 });
 
-// Clic
-dzEl.addEventListener('click', function() {
-  document.getElementById('pdf-input').click();
+// Code identique au test_drop.html qui fonctionne sur Cloudflare
+document.addEventListener('dragover', function(e) { e.preventDefault(); }, true);
+document.addEventListener('drop', function(e) { e.preventDefault(); }, true);
+
+dzEl.addEventListener('dragenter', function(e) {
+  e.preventDefault();
+  dzEl.classList.add('over');
 });
-
-// Coller avec Ctrl+V depuis Outlook ou explorateur
-document.addEventListener('paste', function(e) {
-  var items = (e.clipboardData || e.originalEvent.clipboardData).items;
-  for (var i = 0; i < items.length; i++) {
-    if (items[i].type === 'application/pdf' || items[i].kind === 'file') {
-      var file = items[i].getAsFile();
-      if (file) {
-        loadPDF(file);
-        break;
-      }
-    }
-  }
+dzEl.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  dzEl.classList.add('over');
 });
-
-// Bloquer ouverture navigateur
-window.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
-window.addEventListener('drop',     function(e) { e.preventDefault(); e.stopPropagation(); }, true);
-
-// Drag & drop sur la zone
-dzEl.addEventListener('dragenter', function(e) { e.preventDefault(); dzEl.classList.add('over'); });
-dzEl.addEventListener('dragover',  function(e) { e.preventDefault(); dzEl.classList.add('over'); });
-dzEl.addEventListener('dragleave', function(e) { e.preventDefault(); dzEl.classList.remove('over'); });
+dzEl.addEventListener('dragleave', function(e) {
+  e.preventDefault();
+  dzEl.classList.remove('over');
+});
 dzEl.addEventListener('drop', function(e) {
   e.preventDefault();
   e.stopPropagation();
   dzEl.classList.remove('over');
   var files = e.dataTransfer.files;
-  if (files && files.length > 0) { loadPDF(files[0]); }
+  if (files && files.length > 0) {
+    loadPDF(files[0]);
+  }
 });
+
 
 function loadPDF(file) {
   showMsg('pdf-msg', 'info', '⏳ Lecture de ' + file.name + '...');
