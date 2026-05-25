@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vérification Commande — Gromec</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0f1117;
+  --paper: #f7f6f2;
+  --steel: #1c2b3a;
+  --steel-l: #2d3f52;
+  --rule: #d8d5ce;
+  --muted: #888278;
+  --ok: #1a6b3a;
+  --ok-bg: #eaf5ee;
+  --err: #8b1a1a;
+  --err-bg: #fceaea;
+  --warn: #7a4a00;
+  --warn-bg: #fef6e4;
+  --ai: #4a1a6b;
+  --ai-bg: #f3eefe;
+  --accent: #c8502a;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--paper); color: var(--ink); min-height: 100vh; }
+
+/* ── HEADER ── */
+.header {
+  background: var(--steel);
+  color: white;
+  padding: 1.5rem 2.5rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  border-bottom: 3px solid var(--accent);
+}
+.header-title { font-size: 1.3rem; font-weight: 600; letter-spacing: -0.01em; }
+.header-sub { font-family: 'IBM Plex Mono', monospace; font-size: .68rem; opacity: .5; margin-top: .2rem; }
+.header-badge { font-family: 'IBM Plex Mono', monospace; font-size: .65rem; background: var(--accent); color: white; padding: .3rem .7rem; border-radius: 2px; }
+
+/* ── LAYOUT ── */
+.main { max-width: 1400px; margin: 0 auto; padding: 2rem 2.5rem; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+.grid1 { margin-bottom: 1.5rem; }
+
+/* ── CARDS ── */
+.card {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.card-head {
+  background: var(--steel);
+  color: white;
+  padding: .55rem 1rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.card-head .step {
+  background: var(--accent);
+  color: white;
+  padding: 1px 8px;
+  border-radius: 2px;
+  font-size: .62rem;
+}
+.card-body { padding: 1.2rem; }
+
+/* ── DROP ZONE ── */
+.dropzone {
+  position: relative;
+  border: 2px dashed var(--rule);
+  border-radius: 3px;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--paper);
+  text-align: center;
+  padding: 1.5rem;
+}
+.dropzone input[type=file] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.dropzone:hover { border-color: var(--steel); background: #eeeee8; }
+.dropzone.ready { border-color: var(--ok); background: var(--ok-bg); border-style: solid; }
+.dropzone .dz-icon { font-size: 2rem; opacity: .25; pointer-events: none; }
+.dropzone .dz-label { font-size: .85rem; color: var(--muted); font-weight: 500; pointer-events: none; }
+.dropzone.ready .dz-label { color: var(--ok); }
+.dropzone .dz-hint { font-family: 'IBM Plex Mono', monospace; font-size: .65rem; color: var(--muted); pointer-events: none; }
+
+/* ── SAP ── */
+.hint-box {
+  background: #eef3f8;
+  border-left: 3px solid var(--steel);
+  padding: .6rem .9rem;
+  font-size: .78rem;
+  color: var(--steel);
+  margin-bottom: .75rem;
+  line-height: 1.5;
+  border-radius: 0 2px 2px 0;
+}
+textarea {
+  width: 100%;
+  min-height: 170px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: .75rem;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .7rem;
+  resize: vertical;
+  background: var(--paper);
+  color: var(--ink);
+  line-height: 1.5;
+  transition: border-color .15s;
+}
+textarea:focus { outline: none; border-color: var(--steel); }
+textarea::placeholder { color: var(--muted); font-style: italic; }
+
+/* ── STATUS MESSAGES ── */
+.msg { padding: .5rem .85rem; font-family: 'IBM Plex Mono', monospace; font-size: .72rem; border-radius: 2px; margin-top: .6rem; display: none; }
+.msg.info { background: #eef3f8; color: var(--steel); border-left: 3px solid var(--steel); }
+.msg.ok   { background: var(--ok-bg); color: var(--ok); border-left: 3px solid var(--ok); }
+.msg.err  { background: var(--err-bg); color: var(--err); border-left: 3px solid var(--err); }
+
+/* ── ACTION BAR ── */
+.action-bar {
+  display: flex;
+  gap: .75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: .9rem 1.2rem;
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+}
+.btn {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .75rem;
+  padding: .55rem 1.2rem;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all .15s;
+  letter-spacing: .03em;
+}
+.btn-primary { background: var(--steel); color: white; }
+.btn-primary:hover { background: var(--steel-l); }
+.btn-primary:disabled { opacity: .3; cursor: not-allowed; }
+.btn-ghost { background: transparent; color: var(--steel); border: 1px solid var(--rule); }
+.btn-ghost:hover { border-color: var(--steel); }
+.btn-accent { background: var(--accent); color: white; }
+.btn-accent:hover { opacity: .88; }
+.btn-accent:disabled { opacity: .3; cursor: not-allowed; }
+.status-text { font-family: 'IBM Plex Mono', monospace; font-size: .7rem; color: var(--muted); }
+
+/* ── PROGRESS ── */
+.progress-wrap { padding: 0 1.2rem .8rem; display: none; }
+.progress-bar { height: 3px; background: var(--rule); border-radius: 2px; overflow: hidden; margin-bottom: .3rem; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .4s; }
+.progress-label { font-family: 'IBM Plex Mono', monospace; font-size: .67rem; color: var(--muted); }
+
+/* ── RESULTS ── */
+#results-section { display: none; }
+
+.summary-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+.stat {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: .85rem 1rem;
+}
+.stat .s-label { font-family: 'IBM Plex Mono', monospace; font-size: .62rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: .3rem; }
+.stat .s-val { font-size: 1.6rem; font-weight: 600; line-height: 1; }
+.stat.s-ok .s-val { color: var(--ok); }
+.stat.s-err .s-val { color: var(--err); }
+.stat.s-warn .s-val { color: var(--warn); }
+.stat.s-blue .s-val { color: var(--steel); }
+
+.ai-notice {
+  background: var(--ai-bg);
+  border-left: 3px solid var(--ai);
+  padding: .6rem .9rem;
+  font-size: .78rem;
+  color: var(--ai);
+  margin-bottom: 1rem;
+  border-radius: 0 2px 2px 0;
+  display: none;
+}
+
+.filter-row {
+  display: flex;
+  gap: .4rem;
+  margin-bottom: .85rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-row span { font-family: 'IBM Plex Mono', monospace; font-size: .67rem; color: var(--muted); margin-right: .2rem; }
+.chip {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .67rem;
+  padding: .25rem .75rem;
+  border-radius: 20px;
+  border: 1px solid var(--rule);
+  cursor: pointer;
+  background: white;
+  color: var(--muted);
+  transition: all .15s;
+}
+.chip:hover { border-color: var(--steel); color: var(--steel); }
+.chip.active { background: var(--steel); color: white; border-color: var(--steel); }
+
+/* ── TABLE ── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: .75rem; }
+thead th {
+  background: var(--steel);
+  color: white;
+  padding: .5rem .65rem;
+  text-align: left;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .63rem;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-weight: 400;
+  white-space: nowrap;
+}
+tbody td { padding: .45rem .65rem; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #f9f8f4; }
+.tr-diff { background: #fff8f7; }
+.tr-nom  { background: #fefcf0; }
+.tr-ai   { background: #faf5ff; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 2px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .63rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.b-ok   { background: var(--ok-bg); color: var(--ok); }
+.b-err  { background: var(--err-bg); color: var(--err); }
+.b-warn { background: var(--warn-bg); color: var(--warn); }
+.b-ai   { background: var(--ai-bg); color: var(--ai); }
+.b-fuz  { background: #fef6e4; color: var(--warn); }
+
+.num { font-family: 'IBM Plex Mono', monospace; }
+.pos { color: var(--err); font-weight: 500; }
+.neg { color: var(--ok); font-weight: 500; }
+.zero { color: var(--muted); }
+.match-sub { font-family: 'IBM Plex Mono', monospace; font-size: .6rem; color: var(--muted); display: block; margin-top: 1px; }
+
+.export-row {
+  display: flex;
+  gap: .5rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--rule);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.export-note { font-family: 'IBM Plex Mono', monospace; font-size: .67rem; color: var(--muted); margin-left: .3rem; }
+
+#debug-panel {
+  display: none;
+  background: #0f1117;
+  color: #4ade80;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: .65rem;
+  padding: .85rem;
+  border-radius: 3px;
+  margin-top: .6rem;
+  max-height: 150px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="header-title">Vérification de Commande Fournisseur</div>
+    <div class="header-sub">PDF confirmation + données SAP → comparaison automatique par IA</div>
+  </div>
+  <div class="header-badge">Gromec Inc.</div>
+</div>
+
+<div class="main">
+
+  <!-- ÉTAPE 1 & 2 -->
+  <div class="grid2">
+    <div class="card">
+      <div class="card-head">
+        📄 Confirmation PDF fournisseur
+        <span class="step">Étape 1</span>
+      </div>
+      <div class="card-body">
+        <div class="dropzone" id="dz">
+          <div class="dz-icon">📋</div>
+          <div class="dz-label" id="dz-label">Cliquez ou glissez le PDF ici</div>
+          <div class="dz-hint">Fichier .pdf — fonctionne avec tous les fournisseurs</div>
+          <input type="file" id="pdf-input" accept=".pdf" style="display:none">
+        </div>
+        <div class="msg" id="pdf-msg"></div>
+        <div id="pdf-preview" style="margin-top:.75rem;font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);max-height:100px;overflow-y:auto;display:none"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        📊 Données SAP
+        <span class="step">Étape 2</span>
+      </div>
+      <div class="card-body">
+        <div class="hint-box">
+          Dans SAP : sélectionnez le tableau → <strong>Ctrl+A → Ctrl+C</strong> → collez ici avec <strong>Ctrl+V</strong>. Incluez la ligne d'en-tête.
+        </div>
+        <textarea id="sap-input" placeholder="Collez ici le tableau SAP..."></textarea>
+        <div class="msg" id="sap-msg"></div>
+        <div id="debug-panel"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTION BAR -->
+  <div class="grid1">
+    <div class="action-bar">
+      <button class="btn btn-accent" id="btn-run" onclick="runAnalysis()" disabled>▶ Lancer la vérification</button>
+      <button class="btn btn-ghost" onclick="clearAll()">✕ Effacer tout</button>
+      <button class="btn btn-ghost" style="font-size:.68rem" onclick="toggleDebug()">⚙ Debug</button>
+      <div class="status-text" id="status-text"></div>
+    </div>
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="progress-label" id="progress-label">...</div>
+    </div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="results-section">
+    <div class="summary-grid" id="summary-grid"></div>
+    <div class="ai-notice" id="ai-notice"></div>
+
+    <div class="card">
+      <div class="card-head">📊 Rapport de vérification</div>
+      <div class="card-body">
+        <div class="filter-row">
+          <span>Filtrer :</span>
+          <div class="chip active" onclick="filterTable('all',this)">Tous</div>
+          <div class="chip" onclick="filterTable('diff',this)">🔴 Écarts</div>
+          <div class="chip" onclick="filterTable('ok',this)">✅ Conformes</div>
+          <div class="chip" onclick="filterTable('ai',this)">🤖 Matchés IA</div>
+          <div class="chip" onclick="filterTable('nom',this)">⚠️ Non trouvés</div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="text-align:center">#</th>
+                <th>Statut</th>
+                <th>Article SAP</th>
+                <th>Code Manuf.</th>
+                <th>Description SAP</th>
+                <th>Qté SAP</th>
+                <th>Qté PDF</th>
+                <th>Diff. qté</th>
+                <th>Prix SAP</th>
+                <th>Prix PDF (unit.)</th>
+                <th>Diff. unit.</th>
+                <th>Diff. total</th>
+                <th>Correspondance</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </div>
+        <div class="export-row">
+          <button class="btn btn-ghost" onclick="exportXLSX()">📊 Excel (.xlsx)</button>
+          <button class="btn btn-ghost" onclick="exportCSV()">📄 CSV</button>
+          <button class="btn btn-ghost" onclick="window.print()">🖨️ Imprimer</button>
+          <span class="export-note" id="export-note"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────────────────────────────────────
+var pdfItems = [];
+var sapItems = [];
+var allResults = [];
+var debugLines = [];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ÉTAPE 1 — PDF : on l'envoie directement à Claude en base64
+// Claude le lit comme il le fait dans le chat → fonctionne pour 100% des formats
+// ─────────────────────────────────────────────────────────────────────────────
+document.getElementById('pdf-input').onchange = function () {
+  if (this.files && this.files[0]) loadPDF(this.files[0]);
+};
+
+var dzEl = document.getElementById('dz');
+
+// Clic pour ouvrir le sélecteur
+// Clic
+dzEl.addEventListener('click', function() {
+  document.getElementById('pdf-input').click();
+});
+document.getElementById('pdf-input').addEventListener('change', function() {
+  if (this.files && this.files[0]) loadPDF(this.files[0]);
+});
+
+// Clic
+dzEl.addEventListener('click', function() {
+  document.getElementById('pdf-input').click();
+});
+
+// Bloquer ouverture navigateur
+window.addEventListener('dragover', function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+window.addEventListener('drop',     function(e) { e.preventDefault(); e.stopPropagation(); }, true);
+
+// Drag & drop sur la zone
+dzEl.addEventListener('dragenter', function(e) { e.preventDefault(); dzEl.classList.add('over'); });
+dzEl.addEventListener('dragover',  function(e) { e.preventDefault(); dzEl.classList.add('over'); });
+dzEl.addEventListener('dragleave', function(e) { e.preventDefault(); dzEl.classList.remove('over'); });
+dzEl.addEventListener('drop', function(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  dzEl.classList.remove('over');
+  var files = e.dataTransfer.files;
+  if (files && files.length > 0) { loadPDF(files[0]); }
+});
+
+function loadPDF(file) {
+  showMsg('pdf-msg', 'info', '⏳ Lecture de ' + file.name + '...');
+  document.getElementById('dz').classList.remove('ready');
+  document.getElementById('pdf-preview').style.display = 'none';
+
+  var reader = new FileReader();
+  reader.onload = function (e) {
+    var arr = new Uint8Array(e.target.result);
+    pdfjsLib.getDocument({ data: arr }).promise.then(function (pdf) {
+      var allLines = [], ps = [];
+      for (var i = 1; i <= pdf.numPages; i++) {
+        ps.push(pdf.getPage(i).then(function (page) {
+          return page.getTextContent().then(function (ct) {
+            var byY = {};
+            ct.items.forEach(function (it) {
+              if (!it.str.trim()) return;
+              var y = Math.round(it.transform[5] / 3) * 3;
+              if (!byY[y]) byY[y] = [];
+              byY[y].push({ str: it.str, x: Math.round(it.transform[4]) });
+            });
+            Object.keys(byY).map(Number).sort(function (a, b) { return b - a; }).forEach(function (y) {
+              var line = byY[y].sort(function (a, b) { return a.x - b.x; }).map(function (p) { return '[x=' + p.x + ']' + p.str; }).join('  ');
+              if (line.length > 3) allLines.push(line);
+            });
+          });
+        }));
+      }
+      Promise.all(ps).then(function () {
+        var rawText = allLines.join('\n');
+        sendPDFToClaude(rawText, file.name, pdf.numPages);
+      });
+    }).catch(function (e) {
+      showMsg('pdf-msg', 'err', '❌ Erreur PDF: ' + e.message);
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function sendPDFToClaude(rawText, fname, numPages) {
+  showMsg('pdf-msg', 'info', '⏳ Analyse IA en cours (' + numPages + ' page(s))...');
+  fetch('https://claude-proxy.dantibo1978.workers.dev', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-5',
+      max_tokens: 3000,
+      messages: [{
+        role: 'user',
+        content: 'Tu es un expert en vérification de commandes industrielles.\n\n' +
+          'Voici le texte extrait du PDF "' + fname + '" avec positions X de chaque élément:\n\n---\n' +
+          rawText.substring(0, 7000) + '\n---\n\n' +
+          'Extrais TOUS les articles commandés. Pour chaque article:\n' +
+          '- lineNbr: numéro de ligne (1, 2, 3...)\n' +
+          '- code: code article du fournisseur\n' +
+          '- qty: quantité commandée (entier)\n' +
+          '- netUnit: prix UNITAIRE par unité (pas le total)\n' +
+          '- netTotal: prix total de la ligne\n\n' +
+          'RÈGLE CRITIQUE: netUnit = prix pour UNE unité.\n' +
+          'Exemples: qty=14 total=266.28 → netUnit=19.02 | qty=2 total=78.70 → netUnit=39.35\n' +
+          'Colonnes "Unit Price","Prix unitaire","PRICE","NET Price" → netUnit\n' +
+          'MA Stewart: List Price × Factor = netUnit\n' +
+          'ASC: NET TOTAL ÷ QTY = netUnit\n' +
+          'CB Supplies: colonne "NET Price" = netUnit\n\n' +
+          'Réponds UNIQUEMENT en JSON valide sans texte ni backticks:\n' +
+          '{"items":[{"lineNbr":1,"code":"4385001250","qty":2,"netUnit":2.3966,"netTotal":4.79}]}'
+      }]
+    })
+  }).then(function (r) { return r.json(); }).then(function (d) {
+    if (d.error) throw new Error(d.error.message);
+    var txt = '';
+    (d.content || []).forEach(function (b) { if (b.type === 'text') txt += b.text; });
+    var parsed = JSON.parse(txt.replace(/```json|```/g, '').trim());
+    pdfItems = (parsed.items || []).map(function (i) {
+      return {
+        lineNbr: parseInt(i.lineNbr) || 1,
+        code: String(i.code || '').trim(),
+        qty: parseInt(i.qty) || 1,
+        netUnit: parseFloat(i.netUnit) || 0,
+        netTotal: parseFloat(i.netTotal) || 0,
+        rawLine: 'L' + i.lineNbr + ' ' + i.code
+      };
+    }).filter(function (i) { return i.code && i.netUnit > 0; });
+
+    if (pdfItems.length > 0) {
+      showMsg('pdf-msg', 'ok', '✅ ' + pdfItems.length + ' articles extraits');
+      document.getElementById('dz').classList.add('ready');
+      document.getElementById('dz-label').textContent = '✅ ' + pdfItems.length + ' articles — cliquez pour changer';
+      var prev = document.getElementById('pdf-preview');
+      prev.style.display = 'block';
+      prev.innerHTML = '<b style="color:var(--steel)">Aperçu:</b><br>' +
+        pdfItems.slice(0, 6).map(function (p) {
+          return '<div style="padding:2px 0;border-bottom:1px solid var(--rule)">L' + p.lineNbr + ' · ' + p.code + ' · Qté:' + p.qty + ' · <b>$' + p.netUnit.toFixed(4) + '</b></div>';
+        }).join('') + (pdfItems.length > 6 ? '<div>...+' + (pdfItems.length - 6) + ' autres</div>' : '');
+    } else {
+      showMsg('pdf-msg', 'err', '❌ Aucun article extrait — activez ⚙ Debug');
+    }
+    checkReady();
+  }).catch(function (e) {
+    showMsg('pdf-msg', 'err', '❌ ' + e.message);
+    checkReady();
+  });
+}
+
+
