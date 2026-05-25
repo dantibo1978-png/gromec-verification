@@ -192,49 +192,15 @@ function processPDF(file){
       b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+CHUNK));
     }
     b64=btoa(b64);
-    log('PDF: '+file.name+' ('+Math.round(bytes.length/1024)+'kb)');
-    setSB('pdf-sb','i','⏳ Claude analyse toutes les pages...');
-    fetch('https://claude-proxy.dantibo1978.workers.dev',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-5',
-        max_tokens:8000,
-        messages:[{role:'user',content:[
-          {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
-          {type:'text',text:
-            'Tu es un expert en vérification de commandes industrielles.\n\n'+
-            'Lis ce bon de confirmation (TOUTES les pages) et extrais ABSOLUMENT TOUS les articles.\n\n'+
-            'Pour chaque article:\n'+
-            '- lineNbr: numéro de ligne\n'+
-            '- code: code/numéro article fournisseur\n'+
-            '- qty: quantité commandée\n'+
-            '- netUnit: prix UNITAIRE par unité (pas le total)\n'+
-            '- netTotal: prix total de la ligne\n\n'+
-            'RÈGLES:\n'+
-            '- netUnit = prix UNE unité. Si qty=3 total=31.75 → netUnit=10.5838\n'+
-            '- ASC: colonne NET (sous LIST) = netUnit\n'+
-            '- MA Stewart: List × Factor = netUnit\n'+
-            '- Inclure TOUS les articles de TOUTES les pages\n\n'+
-            'JSON uniquement sans texte ni backticks:\n'+
-            '{"items":[{"lineNbr":1,"code":"4385003190","qty":3,"netUnit":10.5838,"netTotal":31.75}]}'
-          }
-        ]}]
-      })
-    }).then(function(r){return r.json();}).then(function(d){
-      if(d.error)throw new Error(d.error.message);
-      var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
-      log('Claude réponse: '+t.substring(0,400));
-      var p=JSON.parse(t.replace(/```json|```/g,'').trim());
-      pdfItems=(p.items||[]).map(function(i){return{
-        lineNbr:parseInt(i.lineNbr)||1,
-        code:String(i.code||'').trim(),
-        qty:parseInt(i.qty)||1,
-        netUnit:parseFloat(i.netUnit)||0,
-        netTotal:parseFloat(i.netTotal)||0,
-        rawLine:'L'+i.lineNbr+' '+i.code
-      };}).filter(function(i){return i.code&&i.netUnit>0;});
-      log('Articles: '+pdfItems.length);
+    var fileSizeKb=Math.round(bytes.length/1024);
+    log('PDF: '+file.name+' ('+fileSizeKb+'kb)');
+
+    // Pour les petits PDFs (< 500kb) : 1 seul appel
+    // Pour les grands PDFs : on fait quand même 1 appel mais on demande TOUT
+    setSB('pdf-sb','i','⏳ Claude analyse le PDF ('+fileSizeKb+'kb)...');
+    extractFromPDF(b64, file.name, 1, null, [], function(allItems){
+      pdfItems = allItems;
+      log('Total articles extraits: '+pdfItems.length);
       if(pdfItems.length>0){
         setSB('pdf-sb','o','✅ '+pdfItems.length+' articles extraits');
         dz.classList.add('ok');
@@ -246,9 +212,125 @@ function processPDF(file){
           (pdfItems.length>5?'<div>...+'+(pdfItems.length-5)+' autres</div>':'');
       }else{setSB('pdf-sb','e','❌ Aucun article — voir 🔧 Debug');}
       checkReady();
-    }).catch(function(e){setSB('pdf-sb','e','❌ '+e.message);log('ERR: '+e.message);checkReady();});
+    });
   };
   reader.readAsArrayBuffer(file);
+}
+
+function extractFromPDF(b64, fname, callNum, startAfterLine, accumulated, callback){
+  var startMsg = startAfterLine ? ' (suite après ligne '+startAfterLine+')' : '';
+  setSB('pdf-sb','i','⏳ Appel '+callNum+startMsg+'...');
+
+  var prompt = 'Tu es un expert en vérification de commandes industrielles.
+
+'+
+    'Lis ce bon de confirmation (TOUTES les pages) et extrais TOUS les articles commandés.
+
+';
+
+  if(startAfterLine){
+    prompt += 'IMPORTANT: Retourne SEULEMENT les articles avec lineNbr > '+startAfterLine+'. Ignore les lignes déjà traitées.
+
+';
+  }
+
+  prompt += 'Pour chaque article:
+'+
+    '- lineNbr: numéro de ligne
+'+
+    '- code: code article fournisseur
+'+
+    '- qty: quantité commandée
+'+
+    '- netUnit: prix UNITAIRE (pas le total)
+'+
+    '- netTotal: prix total de la ligne
+
+'+
+    'RÈGLES:
+'+
+    '- netUnit = prix UNE unité. Si qty=3 total=31.75 → netUnit=10.5838
+'+
+    '- ASC: colonne NET (sous LIST) = netUnit
+'+
+    '- MA Stewart: List × Factor = netUnit
+'+
+    '- Inclure TOUS les articles de TOUTES les pages
+
+'+
+    'JSON uniquement sans texte ni backticks:
+'+
+    '{"items":[{"lineNbr":1,"code":"4385003190","qty":3,"netUnit":10.5838,"netTotal":31.75}],"hasMore":false}';
+
+  // hasMore = true si la réponse a été tronquée et il reste des articles
+
+  fetch('https://claude-proxy.dantibo1978.workers.dev',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      model:'claude-sonnet-4-5',
+      max_tokens:16000,
+      messages:[{role:'user',content:[
+        {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+        {type:'text',text:prompt}
+      ]}]
+    })
+  }).then(function(r){return r.json();}).then(function(d){
+    if(d.error)throw new Error(d.error.message);
+    var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
+    log('Appel '+callNum+' réponse: '+t.substring(0,200));
+
+    // Parser le JSON, même s'il est tronqué
+    var cleanT=t.replace(/```json|```/g,'').trim();
+    var parsed={items:[],hasMore:false};
+    try{
+      parsed=JSON.parse(cleanT);
+    }catch(e){
+      // JSON tronqué - récupérer ce qu'on peut
+      log('JSON tronqué, récupération partielle...');
+      var lastGood=cleanT.lastIndexOf('}');
+      var itemsStart=cleanT.indexOf('[');
+      if(itemsStart>=0 && lastGood>itemsStart){
+        try{
+          var partial='{"items":'+cleanT.substring(itemsStart,lastGood+1)+'],"hasMore":true}';
+          parsed=JSON.parse(partial);
+          log('Récupéré '+parsed.items.length+' articles partiels');
+        }catch(e2){
+          log('Impossible de récupérer JSON: '+e2.message);
+        }
+      }
+      parsed.hasMore=true; // Il reste probablement des articles
+    }
+
+    var newItems=(parsed.items||[]).map(function(i){return{
+      lineNbr:parseInt(i.lineNbr)||1,
+      code:String(i.code||'').trim(),
+      qty:parseInt(i.qty)||1,
+      netUnit:parseFloat(i.netUnit)||0,
+      netTotal:parseFloat(i.netTotal)||0,
+      rawLine:'L'+i.lineNbr+' '+i.code
+    };}).filter(function(i){return i.code&&i.netUnit>0;});
+
+    var combined=accumulated.concat(newItems);
+    log('Appel '+callNum+': '+newItems.length+' nouveaux, total: '+combined.length);
+
+    // Continuer si hasMore et qu'on a eu des résultats
+    if(parsed.hasMore && newItems.length>0 && callNum<10){
+      var lastLine=newItems[newItems.length-1].lineNbr;
+      extractFromPDF(b64, fname, callNum+1, lastLine, combined, callback);
+    }else{
+      callback(combined);
+    }
+  }).catch(function(e){
+    log('ERR appel '+callNum+': '+e.message);
+    if(accumulated.length>0){
+      // On a quand même des résultats partiels
+      callback(accumulated);
+    }else{
+      setSB('pdf-sb','e','❌ '+e.message);
+      checkReady();
+    }
+  });
 }
 
 
