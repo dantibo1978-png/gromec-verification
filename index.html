@@ -408,57 +408,36 @@ tbody tr:hover td { background: #f9f8f4; }
 </div><!-- /main -->
 
 <script>
-// ─────────────────────────────────────────────────────────────────────────────
-// STATE
-// ─────────────────────────────────────────────────────────────────────────────
 var pdfItems = [];
 var sapItems = [];
 var allResults = [];
 var debugLines = [];
 
-// ─────────────────────────────────────────────────────────────────────────────
-// ÉTAPE 1 — PDF : on l'envoie directement à Claude en base64
-// Claude le lit comme il le fait dans le chat → fonctionne pour 100% des formats
-// ─────────────────────────────────────────────────────────────────────────────
-document.getElementById('pdf-input').onchange = function () {
-  if (this.files && this.files[0]) loadPDF(this.files[0]);
-};
-
 var dzEl = document.getElementById('dz');
+var pdfInput = document.getElementById('pdf-input');
 
-// Clic pour ouvrir le sélecteur
-// Clic
-dzEl.addEventListener('click', function() {
-  document.getElementById('pdf-input').click();
-});
-document.getElementById('pdf-input').addEventListener('change', function() {
+// Clic sur la zone
+dzEl.addEventListener('click', function() { pdfInput.click(); });
+
+// Sélection via bouton
+pdfInput.addEventListener('change', function() {
   if (this.files && this.files[0]) loadPDF(this.files[0]);
 });
 
-// Code identique au test_drop.html qui fonctionne sur Cloudflare
+// Bloquer ouverture navigateur - identique au test qui fonctionne
 document.addEventListener('dragover', function(e) { e.preventDefault(); }, true);
-document.addEventListener('drop', function(e) { e.preventDefault(); }, true);
+document.addEventListener('drop',     function(e) { e.preventDefault(); }, true);
 
-dzEl.addEventListener('dragenter', function(e) {
-  e.preventDefault();
-  dzEl.classList.add('over');
-});
-dzEl.addEventListener('dragover', function(e) {
-  e.preventDefault();
-  dzEl.classList.add('over');
-});
-dzEl.addEventListener('dragleave', function(e) {
-  e.preventDefault();
-  dzEl.classList.remove('over');
-});
+// Drag & drop sur la zone
+dzEl.addEventListener('dragenter', function(e) { e.preventDefault(); dzEl.classList.add('over'); });
+dzEl.addEventListener('dragover',  function(e) { e.preventDefault(); dzEl.classList.add('over'); });
+dzEl.addEventListener('dragleave', function(e) { e.preventDefault(); dzEl.classList.remove('over'); });
 dzEl.addEventListener('drop', function(e) {
   e.preventDefault();
   e.stopPropagation();
   dzEl.classList.remove('over');
   var files = e.dataTransfer.files;
-  if (files && files.length > 0) {
-    loadPDF(files[0]);
-  }
+  if (files && files.length > 0) { loadPDF(files[0]); }
 });
 
 
