@@ -229,7 +229,7 @@ function callClaude(txt,fname,npages){
       messages:[{role:'user',content:
         'Tu es un expert en vérification de commandes industrielles.\n\n'+
         'Texte extrait du PDF "'+fname+'" avec positions X:\n\n---\n'+
-        txt.substring(0,7000)+'\n---\n\n'+
+        txt.substring(0,50000)+'\n---\n\n'+
         'Extrais TOUS les articles. Pour chaque article:\n'+
         '- lineNbr: numéro de ligne (1,2,3...)\n'+
         '- code: code article du fournisseur\n'+
