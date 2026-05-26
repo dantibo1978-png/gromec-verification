@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vérification Commande — Gromec</title>
 <style>
-:root{--bg:#f5f4f0;--sur:#fff;--brd:#e2e0d8;--txt:#1a1a18;--mut:#6b6b64;--acc:#1a3a5c;--acl:#e8eef5;--ok:#1a6b3a;--okb:#e8f5ee;--er:#8b1a1a;--erb:#fdeaea;--wa:#7a4a00;--wab:#fff3dc;--ai:#4a1a6b;--aib:#f0e8f5;--red:#c8502a}
+:root{--bg:#f5f4f0;--sur:#fff;--brd:#e2e0d8;--txt:#1a1a18;--mut:#6b6b64;--acc:#1a3a5c;--acl:#e8eef5;--ok:#1a6b3a;--okb:#e8f5ee;--er:#8b1a1a;--erb:#fdeaea;--wa:#7a4a00;--wab:#fff3dc;--ai:#4a1a6b;--aib:#f0e8f5}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Georgia,serif;background:var(--bg);color:var(--txt);min-height:100vh}
 header{background:var(--acc);color:#fff;padding:1rem 2rem;display:flex;align-items:baseline;gap:1rem}
@@ -17,14 +17,17 @@ header span{font-size:.7rem;opacity:.5;font-family:monospace}
 .phd{background:var(--acc);color:#fff;padding:.5rem 1rem;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
 .phd .tag{background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;font-size:.66rem}
 .pbd{padding:.9rem}
-#dz{border:2px dashed var(--brd);border-radius:5px;padding:1.5rem;text-align:center;background:var(--bg);min-height:130px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem}
-#dz.over{border-color:var(--acc);background:var(--acl)}
-#dz.ok{border-color:var(--ok);background:var(--okb)}
-#dz .ico{font-size:1.7rem;opacity:.35}
-#dz .lbl{font-size:.82rem;color:var(--mut)}
-#dz.ok .lbl{color:var(--ok);font-weight:bold}
-#dz .sub{font-size:.68rem;color:var(--mut)}
-textarea{width:100%;min-height:175px;border:1px solid var(--brd);border-radius:4px;padding:.65rem;font-family:'Courier New',monospace;font-size:.71rem;resize:vertical;background:var(--bg);color:var(--txt);line-height:1.45}
+.dz{border:2px dashed var(--brd);border-radius:5px;padding:1.5rem;text-align:center;background:var(--bg);min-height:110px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem}
+.dz.over{border-color:var(--acc);background:var(--acl)}
+.dz.ok{border-color:var(--ok);background:var(--okb)}
+.dz .ico{font-size:1.7rem;opacity:.35}
+.dz .lbl{font-size:.82rem;color:var(--mut)}
+.dz.ok .lbl{color:var(--ok);font-weight:bold}
+.dz .sub{font-size:.68rem;color:var(--mut)}
+.dz2{border:2px dashed var(--brd);border-radius:5px;padding:.75rem;text-align:center;background:var(--bg);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.6rem;font-size:.78rem;color:var(--mut)}
+.dz2.over{border-color:var(--acc);background:var(--acl)}
+.dz2.ok{border-color:var(--ok);background:var(--okb);color:var(--ok)}
+textarea{width:100%;min-height:160px;border:1px solid var(--brd);border-radius:4px;padding:.65rem;font-family:'Courier New',monospace;font-size:.71rem;resize:vertical;background:var(--bg);color:var(--txt);line-height:1.45}
 textarea:focus{outline:2px solid var(--acc);border-color:transparent}
 .ibox{background:var(--acl);border-left:3px solid var(--acc);padding:.55rem .8rem;font-size:.76rem;color:var(--acc);margin-bottom:.6rem;border-radius:0 4px 4px 0;line-height:1.55}
 .btn{background:var(--acc);color:#fff;border:none;padding:.55rem 1.2rem;border-radius:4px;font-size:.8rem;cursor:pointer;transition:opacity .15s}
@@ -47,7 +50,7 @@ td{padding:.38rem .5rem;border-bottom:1px solid var(--brd);vertical-align:middle
 tr:last-child td{border-bottom:none}tr:hover td{background:var(--bg)}
 .badge{display:inline-block;padding:2px 6px;border-radius:3px;font-size:.66rem;font-weight:bold;font-family:monospace;white-space:nowrap}
 .bok{background:var(--okb);color:var(--ok)}.ber{background:var(--erb);color:var(--er)}.bwa{background:var(--wab);color:var(--wa)}.bai{background:var(--aib);color:var(--ai)}.bfu{background:#fff3dc;color:#7a4a00}
-.dp{color:var(--er);font-weight:bold}.dn{color:var(--ok);font-weight:bold}.dz2{color:var(--mut)}
+.dp{color:var(--er);font-weight:bold}.dn{color:var(--ok);font-weight:bold}.dz2c{color:var(--mut)}
 .mm{font-size:.6rem;color:var(--mut);display:block;margin-top:1px;font-style:italic}
 td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:right;font-family:'Courier New',monospace}
 .rdi{background:#fff8f8}.rno{background:#fffbe8}.rai{background:#faf0ff}
@@ -71,29 +74,28 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
   <div class="panel">
     <div class="phd">📄 Confirmation PDF fournisseur <span class="tag">Étape 1</span></div>
     <div class="pbd">
-      <!-- DROP ZONE : div simple, même structure que test_drop.html -->
-      <div id="dz">
+      <div class="dz" id="dz1">
         <div class="ico">📋</div>
-        <div class="lbl" id="dz-lbl">Cliquez ou glissez le PDF ici</div>
-        <div class="sub">Fonctionne avec tous les fournisseurs</div>
+        <div class="lbl" id="dz1-lbl">Cliquez ou glissez le PDF ici</div>
+        <div class="sub">Confirmation fournisseur — tous les formats</div>
       </div>
-      <input type="file" id="fi" accept=".pdf" style="display:none">
+      <input type="file" id="fi1" accept=".pdf" style="display:none">
       <div id="pdf-sb" class="sb i"></div>
-      <div id="pdf-prev" style="display:none;margin-top:.65rem;font-size:.7rem;max-height:110px;overflow-y:auto;font-family:monospace;color:var(--mut)"></div>
+      <div id="pdf-prev" style="display:none;margin-top:.65rem;font-size:.7rem;max-height:100px;overflow-y:auto;font-family:monospace;color:var(--mut)"></div>
       <div id="dbg"></div>
     </div>
   </div>
 
   <div class="panel">
-    <div class="phd">📊 Données SAP <span class="tag">Étape 2</span></div>
+    <div class="phd">📊 Données SAP / Bon de commande <span class="tag">Étape 2</span></div>
     <div class="pbd">
-      <div class="ibox">Option 1 : Glissez un <strong>bon de commande PDF</strong> Gromec ci-dessous.<br>Option 2 : Dans SAP <strong>Ctrl+A → Ctrl+C</strong> → collez avec <strong>Ctrl+V</strong>.</div>
-      <div id="dz2" style="border:2px dashed var(--brd);border-radius:5px;padding:.8rem;text-align:center;background:var(--bg);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.6rem;font-size:.78rem;color:var(--mut)">
+      <div class="ibox"><strong>Option A :</strong> Glissez le bon de commande Gromec (PDF)<br><strong>Option B :</strong> Collez le tableau SAP (Ctrl+A → Ctrl+C dans SAP)</div>
+      <div class="dz2" id="dz2">
         📋 <span id="dz2-lbl">Glissez le bon de commande Gromec (PDF) ici</span>
       </div>
       <input type="file" id="fi2" accept=".pdf" style="display:none">
       <div id="sap-pdf-sb" class="sb i"></div>
-      <textarea id="si" placeholder="Ou collez ici le tableau SAP..." style="margin-top:.4rem"></textarea>
+      <textarea id="si" placeholder="Ou collez ici le tableau SAP..."></textarea>
       <div id="sap-sb" class="sb i"></div>
     </div>
   </div>
@@ -146,8 +148,8 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
         <button class="btn btn-s" onclick="window.print()">🖨️ Imprimer</button>
       </div>
       <div class="exp" style="border-top:none;padding-top:0;margin-top:.5rem">
-        <button class="btn" onclick="copierPrix()" style="background:var(--ok)" title="Copie les prix PDF en ordre de ligne SAP">📋 Copier prix → SAP</button>
-        <button class="btn" onclick="copierQty()" style="background:var(--ok)" title="Copie les quantités PDF en ordre de ligne SAP">📋 Copier quantités → SAP</button>
+        <button class="btn" onclick="copierPrix()" style="background:var(--ok)">📋 Copier prix → SAP</button>
+        <button class="btn" onclick="copierQty()" style="background:var(--ok)">📋 Copier quantités → SAP</button>
         <span id="copy-note" style="font-size:.75rem;color:var(--ok);font-weight:bold;margin-left:.4rem"></span>
         <span id="enote" style="font-size:.7rem;color:var(--mut);margin-left:.4rem"></span>
       </div>
@@ -157,282 +159,187 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
 
 <script>
 var pdfItems=[],sapItems=[],allResults=[],dbgLines=[];
+var PROXY='https://claude-proxy.dantibo1978.workers.dev';
 
-// ── DROP ZONE — copié exactement de test_drop.html qui fonctionne ─────────────
-var dz = document.getElementById('dz');
-var fi = document.getElementById('fi');
+// ── GESTION DRAG & DROP ───────────────────────────────────────────────────────
+// Un seul handler sur document en capture — router vers la bonne zone
+var dz1=document.getElementById('dz1');
+var dz2=document.getElementById('dz2');
+var fi1=document.getElementById('fi1');
+var fi2=document.getElementById('fi2');
 
-// Clic sur la zone → ouvre le sélecteur
-dz.addEventListener('click', function(){ fi.click(); });
+// Clic
+dz1.addEventListener('click',function(){fi1.click();});
+dz2.addEventListener('click',function(){fi2.click();});
+fi1.addEventListener('change',function(){if(this.files&&this.files[0])processPDF(this.files[0]);});
+fi2.addEventListener('change',function(){if(this.files&&this.files[0])processBonCommande(this.files[0]);});
 
-// Sélection via input file
-fi.addEventListener('change', function(){
-  if(this.files && this.files[0]) processPDF(this.files[0]);
+// Drag visuel
+[dz1,dz2].forEach(function(dz){
+  dz.addEventListener('dragenter',function(e){e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragover', function(e){e.preventDefault();dz.classList.add('over');});
+  dz.addEventListener('dragleave',function(e){e.preventDefault();dz.classList.remove('over');});
+  dz.addEventListener('drop',     function(e){e.preventDefault();e.stopPropagation();dz.classList.remove('over');});
 });
 
-// Bloquer le navigateur d'ouvrir le PDF — IDENTIQUE au test_drop.html
-// Bloquer l'ouverture du navigateur ET router vers la bonne zone
-document.addEventListener('dragover', function(e){ e.preventDefault(); }, true);
-document.addEventListener('drop', function(e){
+// Bloquer ouverture navigateur — intercepte AVANT tout
+document.addEventListener('dragover',function(e){e.preventDefault();},true);
+document.addEventListener('drop',function(e){
   e.preventDefault();
-  var files = e.dataTransfer && e.dataTransfer.files;
-  if(!files || files.length === 0) return;
-  // Router selon la position du drop
-  var r1 = dz.getBoundingClientRect();
-  var r2 = dz2.getBoundingClientRect();
-  var x = e.clientX, y = e.clientY;
-  if(x>=r1.left && x<=r1.right && y>=r1.top && y<=r1.bottom){
-    dz.classList.remove('over');
+  var files=e.dataTransfer&&e.dataTransfer.files;
+  if(!files||!files.length)return;
+  var x=e.clientX,y=e.clientY;
+  var r1=dz1.getBoundingClientRect();
+  var r2=dz2.getBoundingClientRect();
+  if(x>=r1.left&&x<=r1.right&&y>=r1.top&&y<=r1.bottom){
+    dz1.classList.remove('over');
     processPDF(files[0]);
-  } else if(x>=r2.left && x<=r2.right && y>=r2.top && y<=r2.bottom){
-    dz2.style.borderColor='var(--brd)';
-    dz2.style.background='var(--bg)';
+  }else if(x>=r2.left&&x<=r2.right&&y>=r2.top&&y<=r2.bottom){
+    dz2.classList.remove('over');
     processBonCommande(files[0]);
   }
-}, true);
+},true);
 
-// Visuel hover zone 1
-dz.addEventListener('dragenter', function(e){ e.preventDefault(); dz.classList.add('over'); });
-dz.addEventListener('dragover',  function(e){ e.preventDefault(); dz.classList.add('over'); });
-dz.addEventListener('dragleave', function(e){ e.preventDefault(); dz.classList.remove('over'); });
-dz.addEventListener('drop',      function(e){ e.preventDefault(); e.stopPropagation(); });
-
-// ── PDF → CLAUDE (multi-appels pour gros PDFs) ───────────────────────────────
-function processPDF(file){
-  setSB('pdf-sb','i','⏳ Lecture de '+file.name+'...');
-  dz.classList.remove('ok');
-  var reader = new FileReader();
-  reader.onload = function(e){
-    var bytes = new Uint8Array(e.target.result);
-    var b64 = '', CHUNK = 8192;
-    for(var i=0; i<bytes.length; i+=CHUNK){
-      b64 += String.fromCharCode.apply(null, bytes.subarray(i, i+CHUNK));
-    }
-    b64 = btoa(b64);
-    log('PDF: '+file.name+' ('+Math.round(bytes.length/1024)+'kb)');
-    extractFromPDF(b64, file.name, 1, null, []);
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function toB64(file,cb){
+  var r=new FileReader();
+  r.onload=function(e){
+    var bytes=new Uint8Array(e.target.result),b64='',C=8192;
+    for(var i=0;i<bytes.length;i+=C) b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+C));
+    cb(btoa(b64));
   };
-  reader.readAsArrayBuffer(file);
+  r.readAsArrayBuffer(file);
 }
 
-function extractFromPDF(b64, fname, callNum, startAfterLine, accumulated){
-  var msg = '⏳ Analyse IA' + (callNum>1 ? ' — appel '+callNum+' (ligne '+startAfterLine+'+)' : '') + '...';
-  setSB('pdf-sb','i', msg);
+function callProxy(body,cb,errCb){
+  fetch(PROXY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.error)throw new Error(d.error.message);
+      var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
+      cb(t);
+    }).catch(errCb||function(e){log('ERR: '+e.message);});
+}
 
-  var prompt = 'Tu es un expert en vérification de commandes industrielles.\n\n'+
-    'Lis ce bon de confirmation (TOUTES les pages) et extrais TOUS les articles.\n\n';
-
-  if(startAfterLine){
-    prompt += 'Retourne SEULEMENT les articles avec lineNbr STRICTEMENT supérieur à '+startAfterLine+'.\n\n';
+function parseJSON(t){
+  var clean=t.replace(/```json|```/g,'').trim();
+  try{return JSON.parse(clean);}catch(e){
+    // Tenter récupération partielle
+    var iStart=clean.indexOf('[');
+    var iEnd=clean.lastIndexOf('}');
+    if(iStart>=0&&iEnd>iStart){
+      try{return JSON.parse('{"items":'+clean.substring(iStart,iEnd+1)+'],"hasMore":true}');}catch(e2){}
+    }
+    return {items:[],hasMore:false};
   }
+}
 
-  prompt +=
-    'Pour chaque article:\n'+
-    '- lineNbr: numéro de ligne\n'+
-    '- code: code article fournisseur\n'+
-    '- qty: quantité TOTALE = QUANTITY + B/O QTY. Ex: QUANTITY=1 B/O=4 → qty=5\n'+
-    '- netUnit: prix UNITAIRE (pas le total de ligne)\n'+
-    '- netTotal: prix total de la ligne\n\n'+
-    'RÈGLES:\n'+
-    '- netUnit = prix UNE unité. qty=3 total=31.75 → netUnit=10.5838\n'+
-    '- ASC: colonne NET (sous LIST) = netUnit\n'+
-    '- MA Stewart: List × Factor = netUnit\n'+
-    '- Si tu as pu tout inclure: hasMore=false. Si tronqué: hasMore=true\n\n'+
-    'JSON uniquement:\n'+
-    '{"items":[{"lineNbr":1,"code":"ABC","qty":3,"netUnit":10.58,"netTotal":31.75}],"hasMore":false}';
-
-  fetch('https://claude-proxy.dantibo1978.workers.dev',{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      model:'claude-sonnet-4-5',
-      max_tokens:16000,
-      messages:[{role:'user',content:[
-        {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
-        {type:'text',text:prompt}
-      ]}]
-    })
-  }).then(function(r){return r.json();}).then(function(d){
-    if(d.error) throw new Error(d.error.message);
-    var t=''; (d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
-    log('Appel '+callNum+': '+t.substring(0,300));
-
-    var clean = t.replace(/```json|```/g,'').trim();
-    var parsed = {items:[], hasMore:false};
-    try{
-      parsed = JSON.parse(clean);
-    }catch(e){
-      log('JSON tronqué, récupération...');
-      try{
-        var iStart = clean.indexOf('[');
-        var iEnd = clean.lastIndexOf('{"lineNbr"');
-        var iEndFull = clean.indexOf('}', iEnd);
-        if(iStart>=0 && iEndFull>iStart){
-          var partial = '{"items":'+clean.substring(iStart,iEndFull+1)+'],"hasMore":true}';
-          parsed = JSON.parse(partial);
-        }
-      }catch(e2){ log('Récupération échouée: '+e2.message); }
-      parsed.hasMore = true;
-    }
-
-    var newItems = (parsed.items||[]).map(function(i){return{
-      lineNbr:parseInt(i.lineNbr)||1,
-      code:String(i.code||'').trim(),
-      qty:parseInt(i.qty)||1,
-      netUnit:parseFloat(i.netUnit)||0,
-      netTotal:parseFloat(i.netTotal)||0,
-      rawLine:'L'+i.lineNbr+' '+i.code
-    };}).filter(function(i){return i.code&&i.netUnit>0;});
-
-    var combined = accumulated.concat(newItems);
-    log('Appel '+callNum+': '+newItems.length+' nouveaux, total: '+combined.length);
-
-    if(parsed.hasMore && newItems.length>0 && callNum<10){
-      var lastLine = newItems[newItems.length-1].lineNbr;
-      extractFromPDF(b64, fname, callNum+1, lastLine, combined);
-    } else {
-      pdfItems = combined;
-      log('Articles total: '+pdfItems.length);
-      if(pdfItems.length>0){
-        setSB('pdf-sb','o','✅ '+pdfItems.length+' articles extraits'+(callNum>1?' ('+callNum+' appels)':''));
-        dz.classList.add('ok');
-        document.getElementById('dz-lbl').textContent = '✅ '+pdfItems.length+' articles — cliquez pour changer';
-        var prev = document.getElementById('pdf-prev');
-        prev.style.display='block';
-        prev.innerHTML = '<b style="color:var(--acc)">Aperçu:</b><br>'+
-          pdfItems.slice(0,5).map(function(p){
-            return '<div style="padding:2px 0;border-bottom:1px solid var(--brd)">L'+p.lineNbr+' · '+p.code+' · Qté:'+p.qty+' · <b>$'+p.netUnit.toFixed(4)+'</b></div>';
-          }).join('')+(pdfItems.length>5?'<div>...+'+(pdfItems.length-5)+' autres</div>':'');
-      } else {
-        setSB('pdf-sb','e','❌ Aucun article — voir 🔧 Debug');
-      }
-      checkReady();
-    }
-  }).catch(function(e){
-    log('ERR: '+e.message);
-    if(accumulated.length>0){
-      pdfItems = accumulated;
-      setSB('pdf-sb','o','✅ '+pdfItems.length+' articles (partiel)');
-      checkReady();
-    } else {
-      setSB('pdf-sb','e','❌ '+e.message);
-      checkReady();
-    }
+// ── PDF FOURNISSEUR ───────────────────────────────────────────────────────────
+function processPDF(file){
+  setSB('pdf-sb','i','⏳ Lecture de '+file.name+'...');
+  dz1.classList.remove('ok');
+  toB64(file,function(b64){
+    log('PDF: '+file.name+' ('+Math.round(b64.length*3/4/1024)+'kb)');
+    extractPDF(b64,file.name,1,null,[]);
   });
 }
 
-// ── DROP ZONE SAP (bon de commande PDF Gromec) ───────────────────────────────
-var dz2 = document.getElementById('dz2');
-var fi2 = document.getElementById('fi2');
+function extractPDF(b64,fname,callNum,startAfter,accumulated){
+  setSB('pdf-sb','i','⏳ Analyse IA'+(callNum>1?' — appel '+callNum:'')+'...');
+  var prompt='Tu es un expert en vérification de commandes industrielles.\n\n'+
+    'Lis ce bon de confirmation (TOUTES les pages) et extrais TOUS les articles.\n\n'+
+    (startAfter?'Retourne SEULEMENT les articles avec lineNbr > '+startAfter+'.\n\n':'')+
+    'Pour chaque article:\n'+
+    '- lineNbr: numéro de ligne\n'+
+    '- code: code article fournisseur\n'+
+    '- qty: quantité TOTALE = QUANTITY + B/O QTY (back order). Ex: QUANTITY=1 B/O=4 → qty=5\n'+
+    '- netUnit: prix UNITAIRE (pas le total). ASC: colonne NET sous LIST. MA Stewart: List×Factor\n'+
+    '- netTotal: prix total de la ligne\n\n'+
+    'hasMore=true si tronqué, false si tout inclus.\n\n'+
+    'JSON uniquement:\n{"items":[{"lineNbr":1,"code":"ABC","qty":3,"netUnit":10.58,"netTotal":31.75}],"hasMore":false}';
 
-dz2.addEventListener('click', function(){ fi2.click(); });
-fi2.addEventListener('change', function(){
-  if(this.files && this.files[0]) processBonCommande(this.files[0]);
-});
-dz2.addEventListener('dragenter', function(e){ e.preventDefault(); dz2.style.borderColor='var(--acc)'; dz2.style.background='var(--acl)'; });
-dz2.addEventListener('dragover',  function(e){ e.preventDefault(); dz2.style.borderColor='var(--acc)'; dz2.style.background='var(--acl)'; });
-dz2.addEventListener('dragleave', function(e){ e.preventDefault(); dz2.style.borderColor='var(--brd)'; dz2.style.background='var(--bg)'; });
-dz2.addEventListener('drop', function(e){
-  e.preventDefault();
-  e.stopPropagation();
-  dz2.style.borderColor='var(--brd)';
-  dz2.style.background='var(--bg)';
-  var files = e.dataTransfer.files;
-  if(files && files.length > 0) processBonCommande(files[0]);
-});
-
-function processBonCommande(file){
-  setSB('sap-pdf-sb','i','⏳ Lecture du bon de commande '+file.name+'...');
-  var reader = new FileReader();
-  reader.onload = function(e){
-    var bytes = new Uint8Array(e.target.result);
-    var b64='', CHUNK=8192;
-    for(var i=0;i<bytes.length;i+=CHUNK){
-      b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+CHUNK));
+  callProxy({model:'claude-sonnet-4-5',max_tokens:16000,messages:[{role:'user',content:[
+    {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+    {type:'text',text:prompt}
+  ]}]},function(t){
+    log('Appel '+callNum+': '+t.substring(0,200));
+    var p=parseJSON(t);
+    var newItems=(p.items||[]).map(function(i){return{
+      lineNbr:parseInt(i.lineNbr)||1,code:String(i.code||'').trim(),
+      qty:parseInt(i.qty)||1,netUnit:parseFloat(i.netUnit)||0,
+      netTotal:parseFloat(i.netTotal)||0,rawLine:'L'+i.lineNbr+' '+i.code
+    };}).filter(function(i){return i.code&&i.netUnit>0;});
+    var combined=accumulated.concat(newItems);
+    log('Appel '+callNum+': '+newItems.length+' nouveaux, total: '+combined.length);
+    if(p.hasMore&&newItems.length>0&&callNum<10){
+      extractPDF(b64,fname,callNum+1,newItems[newItems.length-1].lineNbr,combined);
+    }else{
+      pdfItems=combined;
+      if(pdfItems.length>0){
+        setSB('pdf-sb','o','✅ '+pdfItems.length+' articles'+(callNum>1?' ('+callNum+' appels)':''));
+        dz1.classList.add('ok');
+        document.getElementById('dz1-lbl').textContent='✅ '+pdfItems.length+' articles — cliquez pour changer';
+        var prev=document.getElementById('pdf-prev');
+        prev.style.display='block';
+        prev.innerHTML='<b>Aperçu:</b><br>'+pdfItems.slice(0,5).map(function(p){
+          return '<div style="padding:2px 0;border-bottom:1px solid var(--brd)">L'+p.lineNbr+' · '+p.code+' · Qté:'+p.qty+' · <b>$'+p.netUnit.toFixed(4)+'</b></div>';
+        }).join('')+(pdfItems.length>5?'<div>...+'+(pdfItems.length-5)+' autres</div>':'');
+      }else{setSB('pdf-sb','e','❌ Aucun article — voir 🔧 Debug');}
+      checkReady();
     }
-    b64=btoa(b64);
-    setSB('sap-pdf-sb','i','⏳ Extraction des articles du bon de commande...');
-    fetch('https://claude-proxy.dantibo1978.workers.dev',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-5',
-        max_tokens:8000,
-        messages:[{role:'user',content:[
-          {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
-          {type:'text',text:
-            'Lis ce bon de commande Gromec et extrais TOUS les articles.
-
-'+
-            'Pour chaque article retourne:
-'+
-            '- lineNbr: numéro de ligne (#)
-'+
-            '- article: numéro article SAP (# Produit)
-'+
-            '- codeManuf: code fabricant (# Code manuf.)
-'+
-            '- desc: description
-'+
-            '- qty: quantité (Qté)
-'+
-            '- price: prix unitaire (Prix)
-
-'+
-            'JSON uniquement:
-'+
-            '{"items":[{"lineNbr":1,"article":"112564","codeManuf":"HOT.700B252","desc":"MANOMETRE TRERICE...","qty":20,"price":56.78}]}'
-          }
-        ]}]
-      })
-    }).then(function(r){return r.json();}).then(function(d){
-      if(d.error) throw new Error(d.error.message);
-      var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
-      var p=JSON.parse(t.replace(/```json|```/g,'').trim());
-      var items = p.items||[];
-      if(items.length>0){
-        // Convertir en format SAP et peupler les sapItems directement
-        sapItems = items.map(function(i, idx){
-          var allCodes = [i.codeManuf||''].filter(Boolean);
-          var alphaCodes = (i.desc||'').match(/[A-Z]{1,4}\d{4,}/g)||[];
-          return {
-            lineNbr: parseInt(i.lineNbr)||idx+1,
-            article: String(i.article||'').trim(),
-            codeManuf: String(i.codeManuf||'').trim(),
-            allCodes: allCodes,
-            alphaCodes: alphaCodes,
-            desc: String(i.desc||'').trim(),
-            qty: parseInt(i.qty)||1,
-            price: parseFloat(i.price)||0,
-            rawLine: (i.article||'')+' '+(i.codeManuf||'')+' '+(i.desc||'')
-          };
-        }).filter(function(i){return i.price>0;});
-        setSB('sap-pdf-sb','o','✅ '+sapItems.length+' articles extraits du bon de commande');
-        dz2.style.borderColor='var(--ok)';
-        dz2.style.background='var(--okb)';
-        document.getElementById('dz2-lbl').textContent='✅ '+sapItems.length+' articles — '+file.name;
-        checkReady();
-      } else {
-        setSB('sap-pdf-sb','e','❌ Aucun article extrait — voir 🔧 Debug');
-      }
-    }).catch(function(e){
-      setSB('sap-pdf-sb','e','❌ '+e.message);
-    });
-  };
-  reader.readAsArrayBuffer(file);
+  },function(e){
+    if(accumulated.length>0){pdfItems=accumulated;setSB('pdf-sb','o','✅ '+pdfItems.length+' articles (partiel)');checkReady();}
+    else{setSB('pdf-sb','e','❌ '+e.message);checkReady();}
+  });
 }
 
-// ── SAP ───────────────────────────────────────────────────────────────────────
+// ── BON DE COMMANDE GROMEC ────────────────────────────────────────────────────
+function processBonCommande(file){
+  setSB('sap-pdf-sb','i','⏳ Lecture de '+file.name+'...');
+  dz2.classList.remove('ok');
+  toB64(file,function(b64){
+    callProxy({model:'claude-sonnet-4-5',max_tokens:8000,messages:[{role:'user',content:[
+      {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+      {type:'text',text:'Lis ce bon de commande Gromec et extrais TOUS les articles.\n\n'+
+        'Pour chaque article:\n- lineNbr: numéro de ligne (#)\n- article: numéro article SAP (# Produit)\n'+
+        '- codeManuf: code fabricant (# Code manuf.)\n- desc: description\n- qty: quantité\n- price: prix unitaire\n\n'+
+        'JSON uniquement:\n{"items":[{"lineNbr":1,"article":"112564","codeManuf":"HOT.700B252","desc":"MANOMETRE...","qty":20,"price":56.78}]}'}
+    ]}]},function(t){
+      var p=parseJSON(t);
+      sapItems=(p.items||[]).map(function(i,idx){
+        var sc=String(i.codeManuf||'').trim();
+        return{
+          lineNbr:parseInt(i.lineNbr)||idx+1,
+          article:String(i.article||'').trim(),
+          codeManuf:sc,
+          allCodes:[sc].filter(Boolean),
+          alphaCodes:[],
+          desc:String(i.desc||'').trim(),
+          qty:parseInt(i.qty)||1,
+          price:parseFloat(i.price)||0,
+          rawLine:(i.article||'')+' '+sc+' '+(i.desc||'')
+        };
+      }).filter(function(i){return i.price>0;});
+      if(sapItems.length>0){
+        setSB('sap-pdf-sb','o','✅ '+sapItems.length+' articles extraits');
+        dz2.classList.add('ok');
+        document.getElementById('dz2-lbl').textContent='✅ '+sapItems.length+' articles — '+file.name;
+      }else{setSB('sap-pdf-sb','e','❌ Aucun article extrait');}
+      checkReady();
+    },function(e){setSB('sap-pdf-sb','e','❌ '+e.message);});
+  });
+}
+
+// ── SAP TEXTE ─────────────────────────────────────────────────────────────────
 document.getElementById('si').addEventListener('input',function(){parseSAP();checkReady();});
 var SAPC={article:1,desc:2,qty:5,price:6,codeManuf:9};
 function parseSAP(){
   var raw=document.getElementById('si').value.trim();
-  if(!raw){sapItems=[];return;}
+  if(!raw){if(sapItems.length&&!document.getElementById('dz2-lbl').textContent.startsWith('✅'))sapItems=[];return;}
   var lines=raw.split('\n'),delim=raw.indexOf('\t')>=0?'\t':'|',hIdx=-1,cols=null;
   for(var i=0;i<Math.min(lines.length,6);i++){
     var parts=lines[i].split(delim);
-    var score=parts.filter(function(p){return/article|description|quantit|prix|code|manuf/i.test(p);}).length;
-    if(score>=3){
+    if(parts.filter(function(p){return/article|description|quantit|prix|code|manuf/i.test(p);}).length>=3){
       hIdx=i;cols={};
       parts.forEach(function(h,idx){
         var n=h.toLowerCase().replace(/[éèê]/g,'e').replace(/[àâ]/g,'a').trim();
@@ -462,8 +369,7 @@ function parseSAP(){
     var qty=parseInt(g(cols.qty))||0,price=parseFloat(g(cols.price))||0;
     var codeManuf=g(cols.codeManuf);
     if(!article.trim()||price<=0)continue;
-    var allCodes=[codeManuf].concat(lines[i].match(/\b\d{7,12}\b/g)||[]);
-    allCodes=allCodes.filter(function(c,idx,arr){return c&&arr.indexOf(c)===idx;});
+    var allCodes=[codeManuf].concat(lines[i].match(/\b\d{7,12}\b/g)||[]).filter(function(c,i,a){return c&&a.indexOf(c)===i;});
     var alphaCodes=(lines[i].match(/\b[A-Z]{1,4}\d{4,}\b/g)||[]).filter(function(c){return c!==article;});
     sapItems.push({lineNbr:sapItems.length+1,article:article,codeManuf:codeManuf,allCodes:allCodes,alphaCodes:alphaCodes,desc:desc,qty:qty,price:price,rawLine:lines[i]});
   }
@@ -475,36 +381,26 @@ function parseSAP(){
 function nc(c){return c.replace(/^0+/,'').replace(/[-\s]/g,'').toUpperCase();}
 function stE(s,av){for(var i=0;i<s.allCodes.length;i++){var h=av.filter(function(p){return p.code===s.allCodes[i];})[0];if(h)return{item:h,method:'Code exact',conf:1.0};}}
 function stN(s,av){var ns=s.allCodes.map(nc);for(var i=0;i<ns.length;i++){var h=av.filter(function(p){return nc(p.code)===ns[i];})[0];if(h)return{item:h,method:'Code normalisé',conf:.97};}}
-function stPS(s,av){for(var i=0;i<av.length;i++){if(s.rawLine.includes(av[i].code))return{item:av[i],method:'Code PDF dans SAP',conf:.93};var n=av[i].code.replace(/^0+/,'');if(n.length>=7&&s.rawLine.includes(n))return{item:av[i],method:'Code PDF norm. dans SAP',conf:.88};}}
+function stPS(s,av){for(var i=0;i<av.length;i++){if(s.rawLine.includes(av[i].code))return{item:av[i],method:'Code PDF dans SAP',conf:.93};var n=av[i].code.replace(/^0+/,'');if(n.length>=7&&s.rawLine.includes(n))return{item:av[i],method:'Code PDF norm.',conf:.88};}}
 function stSP(s,av){for(var i=0;i<s.allCodes.length;i++){var h=av.filter(function(p){return p.rawLine&&p.rawLine.includes(s.allCodes[i]);})[0];if(h)return{item:h,method:'Code SAP dans PDF',conf:.90};}}
-function stPa(s,av){for(var i=0;i<s.allCodes.length;i++){if(s.allCodes[i].length<7)continue;var sf=s.allCodes[i].replace(/^0+/,'').slice(-7);var h=av.filter(function(p){return p.code.replace(/^0+/,'').includes(sf);})[0];if(h)return{item:h,method:'Suffix partiel',conf:.76};}}
-function stAl(s,av){for(var i=0;i<s.alphaCodes.length;i++){var an=s.alphaCodes[i];var h=av.filter(function(p){return p.rawLine&&p.rawLine.toUpperCase().includes(an.toUpperCase());})[0];if(h)return{item:h,method:'Code alphanum.',conf:.72};}}
+function stPa(s,av){for(var i=0;i<s.allCodes.length;i++){if(s.allCodes[i].length<7)continue;var sf=s.allCodes[i].replace(/^0+/,'').slice(-7);var h=av.filter(function(p){return p.code.replace(/^0+/,'').includes(sf);})[0];if(h)return{item:h,method:'Suffix',conf:.76};}}
+function stAl(s,av){for(var i=0;i<s.alphaCodes.length;i++){var an=s.alphaCodes[i];var h=av.filter(function(p){return p.rawLine&&p.rawLine.toUpperCase().includes(an.toUpperCase());})[0];if(h)return{item:h,method:'Alphanum.',conf:.72};}}
 var STRATS=[stE,stN,stPS,stSP,stPa,stAl];
 
 function aiMatch(unmSAP,unmPDF,cb){
   if(!unmSAP.length||!unmPDF.length){cb({matches:[]});return;}
-  var sl=unmSAP.map(function(s,i){return'SAP['+i+'] Art:'+s.article+' Code:'+s.codeManuf+' Codes:['+s.allCodes+'] Desc:"'+s.desc.substring(0,60)+'" Prix:'+s.price;}).join('\n');
+  var sl=unmSAP.map(function(s,i){return'SAP['+i+'] Art:'+s.article+' Code:'+s.codeManuf+' Desc:"'+s.desc.substring(0,60)+'" Prix:'+s.price;}).join('\n');
   var pl=unmPDF.map(function(p,i){return'PDF['+i+'] Code:'+p.code+' Qté:'+p.qty+' Unit:'+p.netUnit;}).join('\n');
-  fetch('https://claude-proxy.dantibo1978.workers.dev',{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,messages:[{role:'user',content:
-      'Tu es un expert en vérification de commandes industrielles (robinetterie, raccords, vannes).\n\n'+
-      'Trouve les correspondances entre articles SAP et PDF non matchés.\n\n'+
-      'STRATÉGIES:\n'+
-      '1. Code similaire (zéros, tirets ignorés)\n'+
-      '2. Code dans la description\n'+
-      '3. Description sémantique: type+matériau+dimension\n'+
-      '   TEE=TÉ, ELBOW=COUDE, REDUCER=RÉDUCTEUR, SS304=INOX304, SS316=INOX316\n'+
-      '   BLK=NOIR, GALV=GALVANISÉ, MI=MALLÉABLE, FG=FORGÉ\n'+
-      '4. Si 1 SAP et 1 PDF restants → confidence 0.75 minimum\n\n'+
-      'SAP:\n'+sl+'\n\nPDF:\n'+pl+
-      '\n\nJSON uniquement:\n{"matches":[{"sap_idx":0,"pdf_idx":0,"confidence":0.85,"reason":"même code"}]}'
-    }]})
-  }).then(function(r){return r.json();}).then(function(d){
-    var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
-    log('IA match: '+t.substring(0,200));
-    cb(JSON.parse(t.replace(/```json|```/g,'').trim()));
-  }).catch(function(e){log('IA err: '+e.message);cb({matches:[]});});
+  callProxy({model:'claude-sonnet-4-5',max_tokens:2000,messages:[{role:'user',content:
+    'Expert commandes industrielles. Trouve correspondances SAP↔PDF.\n\n'+
+    'STRATÉGIES: code similaire, description sémantique (TEE=TÉ, ELBOW=COUDE, REDUCER=RÉDUCTEUR,\n'+
+    'SS316=INOX316, BLK=NOIR, GALV=GALVANISÉ, MI=MALLÉABLE, FG=FORGÉ, tresse=flexible=connect.)\n'+
+    'Si 1 SAP et 1 PDF restants → confidence 0.75 minimum.\n\n'+
+    'SAP:\n'+sl+'\n\nPDF:\n'+pl+
+    '\n\nJSON uniquement:\n{"matches":[{"sap_idx":0,"pdf_idx":0,"confidence":0.85,"reason":"même produit"}]}'
+  }]},function(t){
+    try{cb(JSON.parse(t.replace(/```json|```/g,'').trim()));}catch(e){cb({matches:[]});}
+  },function(){cb({matches:[]});});
 }
 
 // ── ANALYSE ───────────────────────────────────────────────────────────────────
@@ -513,16 +409,12 @@ function runAnalysis(){
   document.getElementById('prog').style.display='block';
   allResults=[];
   var TOL=0.015,usedPDF={},nomIdxs=[];
-  setProg(10,'Matching...');
 
-  // Détecter les codes manuf en double dans SAP
+  // Détecter codes en double dans SAP
   var codeCount={};
-  sapItems.forEach(function(s){
-    if(s.codeManuf) codeCount[s.codeManuf]=(codeCount[s.codeManuf]||0)+1;
-  });
-  var duplicateCodes={};
-  Object.keys(codeCount).forEach(function(c){ if(codeCount[c]>1) duplicateCodes[c]=true; });
+  sapItems.forEach(function(s){if(s.codeManuf)codeCount[s.codeManuf]=(codeCount[s.codeManuf]||0)+1;});
 
+  setProg(10,'Matching...');
   for(var i=0;i<sapItems.length;i++){
     var sap=sapItems[i];
     var av=pdfItems.filter(function(p){return!usedPDF[p.code];});
@@ -530,13 +422,12 @@ function runAnalysis(){
     for(var s=0;s<STRATS.length;s++){match=STRATS[s](sap,av);if(match)break;}
     if(match){
       usedPDF[match.item.code]=true;
-      var dU=match.item.netUnit-sap.price;
-      var dQ=match.item.qty-sap.qty;
+      var dU=match.item.netUnit-sap.price,dQ=match.item.qty-sap.qty;
       var pd=Math.abs(dU)>TOL,qd=dQ!==0;
-      allResults.push({sap:sap,pdfItem:match.item,pdfUnit:match.item.netUnit,method:match.method,conf:match.conf,diffUnit:dU,diffTotal:dU*sap.qty,diffQty:dQ,status:(pd||qd)?'diff':'ok',priceDiff:pd,qtyDiff:qd,ai:false});
+      allResults.push({sap:sap,pdfItem:match.item,pdfUnit:match.item.netUnit,method:match.method,conf:match.conf,diffUnit:dU,diffTotal:dU*sap.qty,diffQty:dQ,status:(pd||qd)?'diff':'ok',priceDiff:pd,qtyDiff:qd,ai:false,dupCode:codeCount[sap.codeManuf]>1});
     }else{
       nomIdxs.push(i);
-      allResults.push({sap:sap,pdfItem:null,pdfUnit:null,method:null,conf:0,diffUnit:undefined,diffTotal:undefined,diffQty:undefined,status:'nom',priceDiff:false,qtyDiff:false,ai:false});
+      allResults.push({sap:sap,pdfItem:null,pdfUnit:null,method:null,conf:0,diffUnit:undefined,diffTotal:undefined,diffQty:undefined,status:'nom',priceDiff:false,qtyDiff:false,ai:false,dupCode:codeCount[sap.codeManuf]>1});
     }
   }
   setProg(55,nomIdxs.length+' sans correspondance → IA...');
@@ -552,14 +443,12 @@ function runAnalysis(){
       var pd=Math.abs(dU)>TOL,qd=dQ!==0;
       for(var r=0;r<allResults.length;r++){
         if(allResults[r].sap===sap&&allResults[r].status==='nom'){
-          allResults[r]={sap:sap,pdfItem:pi,pdfUnit:pi.netUnit,method:'IA: '+m.reason,conf:m.confidence,diffUnit:dU,diffTotal:dU*sap.qty,diffQty:dQ,status:(pd||qd)?'diff':'ok',priceDiff:pd,qtyDiff:qd,ai:true};
+          allResults[r]={sap:sap,pdfItem:pi,pdfUnit:pi.netUnit,method:'IA: '+m.reason,conf:m.confidence,diffUnit:dU,diffTotal:dU*sap.qty,diffQty:dQ,status:(pd||qd)?'diff':'ok',priceDiff:pd,qtyDiff:qd,ai:true,dupCode:codeCount[sap.codeManuf]>1};
           break;
         }
       }
     });
-    setProg(95,'Rendu...');
-    renderResults();
-    setProg(100,'Terminé ✓');
+    setProg(95,'Rendu...');renderResults();setProg(100,'Terminé ✓');
     document.getElementById('res').style.display='block';
     document.getElementById('res').scrollIntoView({behavior:'smooth'});
     document.getElementById('btn-go').disabled=false;
@@ -590,42 +479,33 @@ function renderResults(){
 }
 
 function renderTable(rows){
-  var tb=document.getElementById('tb');
-  tb.innerHTML='';
+  var tb=document.getElementById('tb');tb.innerHTML='';
   rows.forEach(function(r){
     var tr=document.createElement('tr');
-    if(r.ai)tr.className='rai';
-    else if(r.status==='nom')tr.className='rno';
-    else if(r.status==='diff')tr.className='rdi';
+    if(r.ai)tr.className='rai';else if(r.status==='nom')tr.className='rno';else if(r.status==='diff')tr.className='rdi';
     var dU='—',dT='—',dQ='—',badge='',mc='—';
     var pdfQty=r.pdfItem?r.pdfItem.qty:null;
     if(r.status==='ok'){
-      dU='<span class="dz2">0.0000</span>';dT='<span class="dz2">0.00$</span>';dQ='<span class="dz2">0</span>';
+      dU='<span class="dz2c">0.0000</span>';dT='<span class="dz2c">0.00$</span>';dQ='<span class="dz2c">0</span>';
       badge='<span class="badge bok">✅ OK</span>';
     }else if(r.status==='diff'){
       if(r.priceDiff){var cls=r.diffUnit>0?'dp':'dn',sg=r.diffUnit>0?'+':'';dU='<span class="'+cls+'">'+sg+r.diffUnit.toFixed(4)+'</span>';dT='<span class="'+cls+'">'+sg+r.diffTotal.toFixed(2)+'$</span>';}
-      else{dU='<span class="dz2">0.0000</span>';dT='<span class="dz2">0.00$</span>';}
+      else{dU='<span class="dz2c">0.0000</span>';dT='<span class="dz2c">0.00$</span>';}
       if(r.qtyDiff){var qc=r.diffQty>0?'dp':'dn',qs=r.diffQty>0?'+':'';dQ='<span class="'+qc+'">'+qs+r.diffQty+'</span>';}
-      else dQ='<span class="dz2">0</span>';
+      else dQ='<span class="dz2c">0</span>';
       var bp=[];if(r.priceDiff)bp.push('💰 PRIX');if(r.qtyDiff)bp.push('📦 QTÉ');
       badge='<span class="badge ber">🔴 '+bp.join(' + ')+'</span>';
     }else{badge='<span class="badge bwa">⚠️ NON TROUVÉ</span>';}
     if(r.method){var bc=r.ai?'bai':(r.conf>=.95?'bok':'bfu');mc='<span class="badge '+bc+'">'+(r.ai?'🤖 IA':'🔗')+' '+r.method+'</span><span class="mm">'+Math.round(r.conf*100)+'% · PDF:'+r.pdfItem.code+'</span>';}
-    // Surbrillance code manuf changé + alerte doublon
-    var cmDisplay = (function(){
-      var sc=r.sap.codeManuf||'';
-      var pc=r.pdfItem?r.pdfItem.code:'';
-      var isDup = sc && duplicateCodes[sc];
-      var isChanged = sc&&pc&&sc!==pc&&nc(sc)!==nc(pc)&&!sc.includes(pc)&&!pc.includes(sc);
-      var display = sc||'—';
-      if(isChanged){
-        display = '<span style="background:#fff3cd;color:#7a4a00;padding:1px 5px;border-radius:3px;font-weight:bold" title="Code PDF: '+pc+'">'+sc+' ⚠️</span>';
-      }
-      if(isDup){
-        display += '<span style="display:block;font-size:.58rem;color:#8b1a1a;font-style:italic;margin-top:1px">⚠️ Code utilisé '+codeCount[sc]+'x dans SAP</span>';
-      }
-      return display;
-    }());
+    var sc=r.sap.codeManuf||'';
+    var pc=r.pdfItem?r.pdfItem.code:'';
+    var cmDisplay=sc||'—';
+    if(sc&&pc&&sc!==pc&&nc(sc)!==nc(pc)&&!sc.includes(pc)&&!pc.includes(sc)){
+      cmDisplay='<span style="background:#fff3cd;color:#7a4a00;padding:1px 5px;border-radius:3px;font-weight:bold" title="Code PDF: '+pc+'">'+sc+' ⚠️</span>';
+    }
+    if(r.dupCode&&sc){
+      cmDisplay+='<span style="display:block;font-size:.58rem;color:var(--er);font-style:italic;margin-top:1px">⚠️ Code en double dans SAP</span>';
+    }
     tr.innerHTML=
       '<td style="text-align:center;font-weight:bold;color:var(--acc);font-size:.72rem">'+r.sap.lineNbr+'</td>'+
       '<td>'+badge+'</td>'+
@@ -651,19 +531,17 @@ function filt(t,btn){
   renderTable(m[t]||allResults);
 }
 
-// ── COPIER PRIX / QTÉ ────────────────────────────────────────────────────────
+// ── COPIER ────────────────────────────────────────────────────────────────────
 function copierPrix(){
   var sorted=allResults.slice().sort(function(a,b){return a.sap.lineNbr-b.sap.lineNbr;});
-  var txt=sorted.map(function(r){return r.pdfUnit!=null?r.pdfUnit.toFixed(4):'';}).join('\n');
-  navigator.clipboard.writeText(txt).then(function(){
+  navigator.clipboard.writeText(sorted.map(function(r){return r.pdfUnit!=null?r.pdfUnit.toFixed(4):'';}).join('\n')).then(function(){
     document.getElementById('copy-note').textContent='✅ Prix copiés!';
     setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
   });
 }
 function copierQty(){
   var sorted=allResults.slice().sort(function(a,b){return a.sap.lineNbr-b.sap.lineNbr;});
-  var txt=sorted.map(function(r){return r.pdfItem?r.pdfItem.qty:'';}).join('\n');
-  navigator.clipboard.writeText(txt).then(function(){
+  navigator.clipboard.writeText(sorted.map(function(r){return r.pdfItem?r.pdfItem.qty:'';}).join('\n')).then(function(){
     document.getElementById('copy-note').textContent='✅ Quantités copiées!';
     setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
   });
@@ -672,14 +550,12 @@ function copierQty(){
 // ── EXPORT ────────────────────────────────────────────────────────────────────
 function exportXLSX(){
   if(!allResults.length){alert('Aucun résultat.');return;}
-  var btn=document.querySelector('button[onclick="exportXLSX()"]');
-  btn.textContent='⏳...';btn.disabled=true;
+  var btn=document.querySelector('button[onclick="exportXLSX()"]');btn.textContent='⏳...';btn.disabled=true;
   var ord={diff:0,nom:1,ok:2};
   var sorted=allResults.slice().sort(function(a,b){var sd=(ord[a.status]||3)-(ord[b.status]||3);return sd!==0?sd:a.sap.lineNbr-b.sap.lineNbr;});
   var rows=sorted.map(function(r){return{ligne:r.sap.lineNbr,article:r.sap.article,codeManuf:r.sap.codeManuf||'',desc:r.sap.desc,qty:r.sap.qty,qtePDF:r.pdfItem?r.pdfItem.qty:'',diffQty:r.diffQty!=null?r.diffQty:'',prixSAP:r.sap.price!=null?parseFloat(r.sap.price.toFixed(4)):'',prixPDF:r.pdfUnit!=null?parseFloat(r.pdfUnit.toFixed(4)):'',diffUnit:r.diffUnit!=null?parseFloat(r.diffUnit.toFixed(4)):'',diffTotal:r.diffTotal!=null?parseFloat(r.diffTotal.toFixed(4)):'',methode:r.method||'',confiance:r.conf?Math.round(r.conf*100):'',statut:r.status==='ok'?'CONFORME':r.status==='diff'?'ECART':'NON TROUVE'};});
   var resume={date:new Date().toLocaleDateString('fr-CA'),total:allResults.length,conformes:allResults.filter(function(r){return r.status==='ok';}).length,ecarts:allResults.filter(function(r){return r.status==='diff';}).length,nonTrouves:allResults.filter(function(r){return r.status==='nom';}).length,impact:parseFloat(allResults.reduce(function(s,r){return s+(r.diffTotal||0);},0).toFixed(2))};
-  fetch('https://claude-proxy.dantibo1978.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:8000,messages:[{role:'user',content:'Exécute ce code Python et retourne UNIQUEMENT la ligne commençant par XLSX_B64:\n\n```python\nimport openpyxl,base64,io,json\nfrom openpyxl.styles import Font,PatternFill,Alignment,Border,Side\nfrom openpyxl.utils import get_column_letter\ndata=json.loads(\'\'\''+JSON.stringify({rows:rows,resume:resume})+'\'\'\') \nrows=data["rows"];resume=data["resume"]\nwb=openpyxl.Workbook();ws=wb.active;ws.title="Verification"\nHF=PatternFill("solid",fgColor="1A3A5C");HFT=Font(name="Arial",bold=True,color="FFFFFF",size=10)\nTHIN=Side(style="thin",color="E2E0D8");BORD=Border(left=THIN,right=THIN,top=THIN,bottom=THIN)\nFILLS={"CONFORME":PatternFill("solid",fgColor="E8F5EE"),"ECART":PatternFill("solid",fgColor="FDEAEA"),"NON TROUVE":PatternFill("solid",fgColor="FFFBE8")}\nFST={"CONFORME":Font(name="Arial",bold=True,color="1A6B3A",size=10),"ECART":Font(name="Arial",bold=True,color="8B1A1A",size=10),"NON TROUVE":Font(name="Arial",bold=True,color="7A4A00",size=10)}\nFB=Font(name="Arial",size=10);FP=Font(name="Arial",bold=True,color="8B1A1A",size=10);FN=Font(name="Arial",bold=True,color="1A6B3A",size=10)\nhdrs=["Ligne","Article SAP","Code Manuf.","Description","Qty SAP","Qty PDF","Diff Qty","Prix SAP","Prix PDF","Diff Unit","Diff Total","Methode","Confiance","Statut"]\nws.append(hdrs)\nfor c,h in enumerate(hdrs,1):\n cell=ws.cell(1,c);cell.font=HFT;cell.fill=HF;cell.alignment=Alignment(horizontal="center",vertical="center")\nfor row in rows:\n vals=[row["ligne"],row["article"],row["codeManuf"],row["desc"],row["qty"],row["qtePDF"],row["diffQty"],row["prixSAP"],row["prixPDF"],row["diffUnit"],row["diffTotal"],row["methode"],row["confiance"],row["statut"]]\n ws.append(vals);r=ws.max_row;fill=FILLS.get(row["statut"],PatternFill())\n for c in range(1,15):\n  cell=ws.cell(r,c);cell.fill=fill;cell.border=BORD;cell.font=FB\n  if c==1:cell.alignment=Alignment(horizontal="center")\n  if c in[8,9,10,11]:cell.number_format="#,##0.0000";cell.alignment=Alignment(horizontal="right")\n  if c in[5,6,7]:cell.alignment=Alignment(horizontal="center")\n  if c in[10,11] and isinstance(cell.value,(int,float)):\n   if cell.value>0.015:cell.font=FP\n   elif cell.value<-0.015:cell.font=FN\n  if c==13:cell.alignment=Alignment(horizontal="center")\n  if c==14:cell.font=FST.get(row["statut"],FB);cell.alignment=Alignment(horizontal="center")\nws.freeze_panes="A2"\nfor i,w in enumerate([9,13,14,48,7,7,8,14,14,14,13,30,11,12],1):ws.column_dimensions[get_column_letter(i)].width=w\nws2=wb.create_sheet("Resume");ws2["A1"]="RAPPORT DE VERIFICATION";ws2["A1"].font=Font(name="Arial",bold=True,size=14,color="1A3A5C")\nws2.append(["Date",resume["date"]]);ws2.append([])\nfor lbl,val in[("Total",resume["total"]),("Conformes",resume["conformes"]),("Ecarts",resume["ecarts"]),("Non trouves",resume["nonTrouves"]),("Impact($)",resume["impact"])]:ws2.append([lbl,val])\nws2.column_dimensions["A"].width=25;ws2.column_dimensions["B"].width=20\nbuf=io.BytesIO();wb.save(buf);buf.seek(0)\nprint("XLSX_B64:"+base64.b64encode(buf.read()).decode())\n```'}]})}).then(function(r){return r.json();}).then(function(d){
-    var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
+  callProxy({model:'claude-sonnet-4-5',max_tokens:8000,messages:[{role:'user',content:'Exécute ce code Python et retourne UNIQUEMENT la ligne commençant par XLSX_B64:\n\n```python\nimport openpyxl,base64,io,json\nfrom openpyxl.styles import Font,PatternFill,Alignment,Border,Side\nfrom openpyxl.utils import get_column_letter\ndata=json.loads(\'\'\''+JSON.stringify({rows:rows,resume:resume})+'\'\'\') \nrows=data["rows"];resume=data["resume"]\nwb=openpyxl.Workbook();ws=wb.active;ws.title="Verification"\nHF=PatternFill("solid",fgColor="1A3A5C");HFT=Font(name="Arial",bold=True,color="FFFFFF",size=10)\nTHIN=Side(style="thin",color="E2E0D8");BORD=Border(left=THIN,right=THIN,top=THIN,bottom=THIN)\nFILLS={"CONFORME":PatternFill("solid",fgColor="E8F5EE"),"ECART":PatternFill("solid",fgColor="FDEAEA"),"NON TROUVE":PatternFill("solid",fgColor="FFFBE8")}\nFST={"CONFORME":Font(name="Arial",bold=True,color="1A6B3A",size=10),"ECART":Font(name="Arial",bold=True,color="8B1A1A",size=10),"NON TROUVE":Font(name="Arial",bold=True,color="7A4A00",size=10)}\nFB=Font(name="Arial",size=10);FP=Font(name="Arial",bold=True,color="8B1A1A",size=10);FN=Font(name="Arial",bold=True,color="1A6B3A",size=10)\nhdrs=["Ligne","Article SAP","Code Manuf.","Description","Qty SAP","Qty PDF","Diff Qty","Prix SAP","Prix PDF","Diff Unit","Diff Total","Methode","Confiance","Statut"]\nws.append(hdrs)\nfor c,h in enumerate(hdrs,1):\n cell=ws.cell(1,c);cell.font=HFT;cell.fill=HF;cell.alignment=Alignment(horizontal="center",vertical="center")\nfor row in rows:\n vals=[row["ligne"],row["article"],row["codeManuf"],row["desc"],row["qty"],row["qtePDF"],row["diffQty"],row["prixSAP"],row["prixPDF"],row["diffUnit"],row["diffTotal"],row["methode"],row["confiance"],row["statut"]]\n ws.append(vals);r=ws.max_row;fill=FILLS.get(row["statut"],PatternFill())\n for c in range(1,15):\n  cell=ws.cell(r,c);cell.fill=fill;cell.border=BORD;cell.font=FB\n  if c==1:cell.alignment=Alignment(horizontal="center")\n  if c in[8,9,10,11]:cell.number_format="#,##0.0000";cell.alignment=Alignment(horizontal="right")\n  if c in[5,6,7]:cell.alignment=Alignment(horizontal="center")\n  if c in[10,11] and isinstance(cell.value,(int,float)):\n   if cell.value>0.015:cell.font=FP\n   elif cell.value<-0.015:cell.font=FN\n  if c==13:cell.alignment=Alignment(horizontal="center")\n  if c==14:cell.font=FST.get(row["statut"],FB);cell.alignment=Alignment(horizontal="center")\nws.freeze_panes="A2"\nfor i,w in enumerate([9,13,14,48,7,7,8,14,14,14,13,30,11,12],1):ws.column_dimensions[get_column_letter(i)].width=w\nws2=wb.create_sheet("Resume");ws2["A1"]="RAPPORT DE VERIFICATION";ws2["A1"].font=Font(name="Arial",bold=True,size=14,color="1A3A5C")\nws2.append(["Date",resume["date"]]);ws2.append([])\nfor lbl,val in[("Total",resume["total"]),("Conformes",resume["conformes"]),("Ecarts",resume["ecarts"]),("Non trouves",resume["nonTrouves"]),("Impact($)",resume["impact"])]:ws2.append([lbl,val])\nws2.column_dimensions["A"].width=25;ws2.column_dimensions["B"].width=20\nbuf=io.BytesIO();wb.save(buf);buf.seek(0)\nprint("XLSX_B64:"+base64.b64encode(buf.read()).decode())\n```'}]},function(t){
     var m=t.match(/XLSX_B64:([A-Za-z0-9+\/=\s]+)/);
     if(!m)throw new Error('Pas de base64');
     var b64=m[1].replace(/\s/g,''),bin=atob(b64),bytes=new Uint8Array(bin.length);
@@ -689,7 +565,8 @@ function exportXLSX(){
     a.download='verification_'+new Date().toISOString().slice(0,10)+'.xlsx';
     document.body.appendChild(a);a.click();document.body.removeChild(a);
     document.getElementById('enote').textContent='✅ Excel téléchargé!';
-  }).catch(function(){exportCSV();}).finally(function(){btn.textContent='📊 Excel (.xlsx)';btn.disabled=false;});
+    btn.textContent='📊 Excel (.xlsx)';btn.disabled=false;
+  },function(){exportCSV();btn.textContent='📊 Excel (.xlsx)';btn.disabled=false;});
 }
 
 function exportCSV(){
@@ -708,21 +585,21 @@ function exportCSV(){
 function clearAll(){
   pdfItems=[];sapItems=[];allResults=[];dbgLines=[];
   document.getElementById('si').value='';
-  document.getElementById('fi').value='';
-  document.getElementById('pdf-sb').style.display='none';
-  document.getElementById('sap-sb').style.display='none';
+  fi1.value='';fi2.value='';
+  ['pdf-sb','sap-sb','sap-pdf-sb'].forEach(function(id){document.getElementById(id).style.display='none';});
   document.getElementById('pdf-prev').style.display='none';
   document.getElementById('res').style.display='none';
   document.getElementById('prog').style.display='none';
   document.getElementById('dbg').textContent='';
-  dz.classList.remove('ok','over');
-  document.getElementById('dz-lbl').textContent='Cliquez ou glissez le PDF ici';
+  dz1.classList.remove('ok','over');dz2.classList.remove('ok','over');
+  document.getElementById('dz1-lbl').textContent='Cliquez ou glissez le PDF ici';
+  document.getElementById('dz2-lbl').textContent='Glissez le bon de commande Gromec (PDF) ici';
   document.getElementById('btn-go').disabled=true;
   document.getElementById('st').textContent='';
   document.getElementById('enote').textContent='';
   document.getElementById('copy-note').textContent='';
 }
-function setSB(id,t,m){var e=document.getElementById(id);e.className='sb '+t;e.textContent=m;e.style.display='block';}
+function setSB(id,t,m){var e=document.getElementById(id);if(!e)return;e.className='sb '+t;e.textContent=m;e.style.display='block';}
 function setProg(p,l){document.getElementById('pf').style.width=p+'%';document.getElementById('pl').textContent=l;}
 function checkReady(){var ok=pdfItems.length>0&&sapItems.length>0;document.getElementById('btn-go').disabled=!ok;if(ok)document.getElementById('st').textContent='Prêt — '+pdfItems.length+' art. PDF · '+sapItems.length+' art. SAP';}
 function log(m){dbgLines.push(m);var e=document.getElementById('dbg');if(e.style.display!=='none')e.textContent=dbgLines.slice(-60).join('\n');}
