@@ -171,31 +171,31 @@ fi.addEventListener('change', function(){
 });
 
 // Bloquer le navigateur d'ouvrir le PDF — IDENTIQUE au test_drop.html
+// Bloquer l'ouverture du navigateur ET router vers la bonne zone
 document.addEventListener('dragover', function(e){ e.preventDefault(); }, true);
-document.addEventListener('drop',     function(e){ e.preventDefault(); }, true);
-
-// Listeners sur la zone — IDENTIQUES au test_drop.html
-dz.addEventListener('dragenter', function(e){
+document.addEventListener('drop', function(e){
   e.preventDefault();
-  dz.classList.add('over');
-});
-dz.addEventListener('dragover', function(e){
-  e.preventDefault();
-  dz.classList.add('over');
-});
-dz.addEventListener('dragleave', function(e){
-  e.preventDefault();
-  dz.classList.remove('over');
-});
-dz.addEventListener('drop', function(e){
-  e.preventDefault();
-  e.stopPropagation();
-  dz.classList.remove('over');
-  var files = e.dataTransfer.files;
-  if(files && files.length > 0){
+  var files = e.dataTransfer && e.dataTransfer.files;
+  if(!files || files.length === 0) return;
+  // Router selon la position du drop
+  var r1 = dz.getBoundingClientRect();
+  var r2 = dz2.getBoundingClientRect();
+  var x = e.clientX, y = e.clientY;
+  if(x>=r1.left && x<=r1.right && y>=r1.top && y<=r1.bottom){
+    dz.classList.remove('over');
     processPDF(files[0]);
+  } else if(x>=r2.left && x<=r2.right && y>=r2.top && y<=r2.bottom){
+    dz2.style.borderColor='var(--brd)';
+    dz2.style.background='var(--bg)';
+    processBonCommande(files[0]);
   }
-});
+}, true);
+
+// Visuel hover zone 1
+dz.addEventListener('dragenter', function(e){ e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragover',  function(e){ e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', function(e){ e.preventDefault(); dz.classList.remove('over'); });
+dz.addEventListener('drop',      function(e){ e.preventDefault(); e.stopPropagation(); });
 
 // ── PDF → CLAUDE (multi-appels pour gros PDFs) ───────────────────────────────
 function processPDF(file){
