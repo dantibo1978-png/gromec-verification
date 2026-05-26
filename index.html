@@ -74,9 +74,9 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
   <div class="panel">
     <div class="phd">📄 Confirmation PDF fournisseur <span class="tag">Étape 1</span></div>
     <div class="pbd">
-      <div class="dz" id="dz1">
+      <div class="dz" id="dz">
         <div class="ico">📋</div>
-        <div class="lbl" id="dz1-lbl">Cliquez ou glissez le PDF ici</div>
+        <div class="lbl" id="dz-lbl">Cliquez ou glissez le PDF ici</div>
         <div class="sub">Confirmation fournisseur — tous les formats</div>
       </div>
       <input type="file" id="fi1" accept=".pdf" style="display:none">
@@ -163,52 +163,39 @@ var PROXY='https://claude-proxy.dantibo1978.workers.dev';
 
 // ── GESTION DRAG & DROP ───────────────────────────────────────────────────────
 // Un seul handler sur document en capture — router vers la bonne zone
-var dz1=document.getElementById('dz1');
+var dz=document.getElementById('dz');
 var dz2=document.getElementById('dz2');
 var fi1=document.getElementById('fi1');
 var fi2=document.getElementById('fi2');
 
 // Clic
-dz1.addEventListener('click',function(){fi1.click();});
-dz2.addEventListener('click',function(){fi2.click();});
+dz.addEventListener('click',function(){fi1.click();});
+
 fi1.addEventListener('change',function(){if(this.files&&this.files[0])processPDF(this.files[0]);});
-fi2.addEventListener('change',function(){if(this.files&&this.files[0])processBonCommande(this.files[0]);});
+
 
 // Drag visuel
-[dz1,dz2].forEach(function(dz){
+[dz,dz2].forEach(function(dz){
   dz.addEventListener('dragenter',function(e){e.preventDefault();dz.classList.add('over');});
   dz.addEventListener('dragover', function(e){e.preventDefault();dz.classList.add('over');});
   dz.addEventListener('dragleave',function(e){e.preventDefault();dz.classList.remove('over');});
   dz.addEventListener('drop',     function(e){e.preventDefault();e.stopPropagation();dz.classList.remove('over');});
 });
 
-// Edge + Outlook : bloquer à TOUS les niveaux avec capture
-['dragenter','dragover','dragleave','drop'].forEach(function(evt){
-  document.addEventListener(evt,function(e){e.preventDefault();e.stopPropagation();if(evt==='dragover'&&e.dataTransfer)e.dataTransfer.dropEffect='copy';},true);
-  document.body.addEventListener(evt,function(e){e.preventDefault();e.stopPropagation();},true);
+// Même code exact que test_drop.html qui fonctionne
+document.addEventListener('dragover', function(e){ e.preventDefault(); }, true);
+document.addEventListener('drop',     function(e){ e.preventDefault(); }, true);
+
+dz.addEventListener('dragenter', function(e){ e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragover',  function(e){ e.preventDefault(); dz.classList.add('over'); });
+dz.addEventListener('dragleave', function(e){ e.preventDefault(); dz.classList.remove('over'); });
+dz.addEventListener('drop', function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  dz.classList.remove('over');
+  var files = e.dataTransfer.files;
+  if(files && files.length > 0) processPDF(files[0]);
 });
-
-// Drop sur dz1
-dz1.addEventListener('dragenter',function(e){e.preventDefault();e.stopPropagation();dz1.classList.add('over');},true);
-dz1.addEventListener('dragover', function(e){e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';dz1.classList.add('over');},true);
-dz1.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();dz1.classList.remove('over');},true);
-dz1.addEventListener('drop',     function(e){
-  e.preventDefault();e.stopPropagation();
-  dz1.classList.remove('over');
-  var files=e.dataTransfer&&e.dataTransfer.files;
-  if(files&&files.length>0)processPDF(files[0]);
-},true);
-
-// Drop sur dz2
-dz2.addEventListener('dragenter',function(e){e.preventDefault();e.stopPropagation();dz2.classList.add('over');},true);
-dz2.addEventListener('dragover', function(e){e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';dz2.classList.add('over');},true);
-dz2.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();dz2.classList.remove('over');},true);
-dz2.addEventListener('drop',     function(e){
-  e.preventDefault();e.stopPropagation();
-  dz2.classList.remove('over');
-  var files=e.dataTransfer&&e.dataTransfer.files;
-  if(files&&files.length>0)processBonCommande(files[0]);
-},true);
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function toB64(file,cb){
@@ -247,7 +234,7 @@ function parseJSON(t){
 // ── PDF FOURNISSEUR ───────────────────────────────────────────────────────────
 function processPDF(file){
   setSB('pdf-sb','i','⏳ Lecture de '+file.name+'...');
-  dz1.classList.remove('ok');
+  dz.classList.remove('ok');
   toB64(file,function(b64){
     log('PDF: '+file.name+' ('+Math.round(b64.length*3/4/1024)+'kb)');
     extractPDF(b64,file.name,1,null,[]);
@@ -287,8 +274,8 @@ function extractPDF(b64,fname,callNum,startAfter,accumulated){
       pdfItems=combined;
       if(pdfItems.length>0){
         setSB('pdf-sb','o','✅ '+pdfItems.length+' articles'+(callNum>1?' ('+callNum+' appels)':''));
-        dz1.classList.add('ok');
-        document.getElementById('dz1-lbl').textContent='✅ '+pdfItems.length+' articles — cliquez pour changer';
+        dz.classList.add('ok');
+        document.getElementById('dz-lbl').textContent='✅ '+pdfItems.length+' articles — cliquez pour changer';
         var prev=document.getElementById('pdf-prev');
         prev.style.display='block';
         prev.innerHTML='<b>Aperçu:</b><br>'+pdfItems.slice(0,5).map(function(p){
@@ -300,43 +287,6 @@ function extractPDF(b64,fname,callNum,startAfter,accumulated){
   },function(e){
     if(accumulated.length>0){pdfItems=accumulated;setSB('pdf-sb','o','✅ '+pdfItems.length+' articles (partiel)');checkReady();}
     else{setSB('pdf-sb','e','❌ '+e.message);checkReady();}
-  });
-}
-
-// ── BON DE COMMANDE GROMEC ────────────────────────────────────────────────────
-function processBonCommande(file){
-  setSB('sap-pdf-sb','i','⏳ Lecture de '+file.name+'...');
-  dz2.classList.remove('ok');
-  toB64(file,function(b64){
-    callProxy({model:'claude-sonnet-4-5',max_tokens:8000,messages:[{role:'user',content:[
-      {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
-      {type:'text',text:'Lis ce bon de commande Gromec et extrais TOUS les articles.\n\n'+
-        'Pour chaque article:\n- lineNbr: numéro de ligne (#)\n- article: numéro article SAP (# Produit)\n'+
-        '- codeManuf: code fabricant (# Code manuf.)\n- desc: description\n- qty: quantité\n- price: prix unitaire\n\n'+
-        'JSON uniquement:\n{"items":[{"lineNbr":1,"article":"112564","codeManuf":"HOT.700B252","desc":"MANOMETRE...","qty":20,"price":56.78}]}'}
-    ]}]},function(t){
-      var p=parseJSON(t);
-      sapItems=(p.items||[]).map(function(i,idx){
-        var sc=String(i.codeManuf||'').trim();
-        return{
-          lineNbr:parseInt(i.lineNbr)||idx+1,
-          article:String(i.article||'').trim(),
-          codeManuf:sc,
-          allCodes:[sc].filter(Boolean),
-          alphaCodes:[],
-          desc:String(i.desc||'').trim(),
-          qty:parseInt(i.qty)||1,
-          price:parseFloat(i.price)||0,
-          rawLine:(i.article||'')+' '+sc+' '+(i.desc||'')
-        };
-      }).filter(function(i){return i.price>0;});
-      if(sapItems.length>0){
-        setSB('sap-pdf-sb','o','✅ '+sapItems.length+' articles extraits');
-        dz2.classList.add('ok');
-        document.getElementById('dz2-lbl').textContent='✅ '+sapItems.length+' articles — '+file.name;
-      }else{setSB('sap-pdf-sb','e','❌ Aucun article extrait');}
-      checkReady();
-    },function(e){setSB('sap-pdf-sb','e','❌ '+e.message);});
   });
 }
 
@@ -601,8 +551,8 @@ function clearAll(){
   document.getElementById('res').style.display='none';
   document.getElementById('prog').style.display='none';
   document.getElementById('dbg').textContent='';
-  dz1.classList.remove('ok','over');dz2.classList.remove('ok','over');
-  document.getElementById('dz1-lbl').textContent='Cliquez ou glissez le PDF ici';
+  dz.classList.remove('ok','over');dz2.classList.remove('ok','over');
+  document.getElementById('dz-lbl').textContent='Cliquez ou glissez le PDF ici';
   document.getElementById('dz2-lbl').textContent='Glissez le bon de commande Gromec (PDF) ici';
   document.getElementById('btn-go').disabled=true;
   document.getElementById('st').textContent='';
