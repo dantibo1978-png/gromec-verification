@@ -87,8 +87,13 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
   <div class="panel">
     <div class="phd">📊 Données SAP <span class="tag">Étape 2</span></div>
     <div class="pbd">
-      <div class="ibox">Dans SAP : <strong>Ctrl+A → Ctrl+C</strong> → collez ici avec <strong>Ctrl+V</strong>. Incluez la ligne d'en-tête.</div>
-      <textarea id="si" placeholder="Collez ici le tableau SAP..."></textarea>
+      <div class="ibox">Option 1 : Glissez un <strong>bon de commande PDF</strong> Gromec ci-dessous.<br>Option 2 : Dans SAP <strong>Ctrl+A → Ctrl+C</strong> → collez avec <strong>Ctrl+V</strong>.</div>
+      <div id="dz2" style="border:2px dashed var(--brd);border-radius:5px;padding:.8rem;text-align:center;background:var(--bg);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:.5rem;margin-bottom:.6rem;font-size:.78rem;color:var(--mut)">
+        📋 <span id="dz2-lbl">Glissez le bon de commande Gromec (PDF) ici</span>
+      </div>
+      <input type="file" id="fi2" accept=".pdf" style="display:none">
+      <div id="sap-pdf-sb" class="sb i"></div>
+      <textarea id="si" placeholder="Ou collez ici le tableau SAP..." style="margin-top:.4rem"></textarea>
       <div id="sap-sb" class="sb i"></div>
     </div>
   </div>
@@ -316,6 +321,107 @@ function extractFromPDF(b64, fname, callNum, startAfterLine, accumulated){
   });
 }
 
+// ── DROP ZONE SAP (bon de commande PDF Gromec) ───────────────────────────────
+var dz2 = document.getElementById('dz2');
+var fi2 = document.getElementById('fi2');
+
+dz2.addEventListener('click', function(){ fi2.click(); });
+fi2.addEventListener('change', function(){
+  if(this.files && this.files[0]) processBonCommande(this.files[0]);
+});
+dz2.addEventListener('dragenter', function(e){ e.preventDefault(); dz2.style.borderColor='var(--acc)'; dz2.style.background='var(--acl)'; });
+dz2.addEventListener('dragover',  function(e){ e.preventDefault(); dz2.style.borderColor='var(--acc)'; dz2.style.background='var(--acl)'; });
+dz2.addEventListener('dragleave', function(e){ e.preventDefault(); dz2.style.borderColor='var(--brd)'; dz2.style.background='var(--bg)'; });
+dz2.addEventListener('drop', function(e){
+  e.preventDefault();
+  e.stopPropagation();
+  dz2.style.borderColor='var(--brd)';
+  dz2.style.background='var(--bg)';
+  var files = e.dataTransfer.files;
+  if(files && files.length > 0) processBonCommande(files[0]);
+});
+
+function processBonCommande(file){
+  setSB('sap-pdf-sb','i','⏳ Lecture du bon de commande '+file.name+'...');
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var bytes = new Uint8Array(e.target.result);
+    var b64='', CHUNK=8192;
+    for(var i=0;i<bytes.length;i+=CHUNK){
+      b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+CHUNK));
+    }
+    b64=btoa(b64);
+    setSB('sap-pdf-sb','i','⏳ Extraction des articles du bon de commande...');
+    fetch('https://claude-proxy.dantibo1978.workers.dev',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-5',
+        max_tokens:8000,
+        messages:[{role:'user',content:[
+          {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
+          {type:'text',text:
+            'Lis ce bon de commande Gromec et extrais TOUS les articles.
+
+'+
+            'Pour chaque article retourne:
+'+
+            '- lineNbr: numéro de ligne (#)
+'+
+            '- article: numéro article SAP (# Produit)
+'+
+            '- codeManuf: code fabricant (# Code manuf.)
+'+
+            '- desc: description
+'+
+            '- qty: quantité (Qté)
+'+
+            '- price: prix unitaire (Prix)
+
+'+
+            'JSON uniquement:
+'+
+            '{"items":[{"lineNbr":1,"article":"112564","codeManuf":"HOT.700B252","desc":"MANOMETRE TRERICE...","qty":20,"price":56.78}]}'
+          }
+        ]}]
+      })
+    }).then(function(r){return r.json();}).then(function(d){
+      if(d.error) throw new Error(d.error.message);
+      var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
+      var p=JSON.parse(t.replace(/```json|```/g,'').trim());
+      var items = p.items||[];
+      if(items.length>0){
+        // Convertir en format SAP et peupler les sapItems directement
+        sapItems = items.map(function(i, idx){
+          var allCodes = [i.codeManuf||''].filter(Boolean);
+          var alphaCodes = (i.desc||'').match(/[A-Z]{1,4}\d{4,}/g)||[];
+          return {
+            lineNbr: parseInt(i.lineNbr)||idx+1,
+            article: String(i.article||'').trim(),
+            codeManuf: String(i.codeManuf||'').trim(),
+            allCodes: allCodes,
+            alphaCodes: alphaCodes,
+            desc: String(i.desc||'').trim(),
+            qty: parseInt(i.qty)||1,
+            price: parseFloat(i.price)||0,
+            rawLine: (i.article||'')+' '+(i.codeManuf||'')+' '+(i.desc||'')
+          };
+        }).filter(function(i){return i.price>0;});
+        setSB('sap-pdf-sb','o','✅ '+sapItems.length+' articles extraits du bon de commande');
+        dz2.style.borderColor='var(--ok)';
+        dz2.style.background='var(--okb)';
+        document.getElementById('dz2-lbl').textContent='✅ '+sapItems.length+' articles — '+file.name;
+        checkReady();
+      } else {
+        setSB('sap-pdf-sb','e','❌ Aucun article extrait — voir 🔧 Debug');
+      }
+    }).catch(function(e){
+      setSB('sap-pdf-sb','e','❌ '+e.message);
+    });
+  };
+  reader.readAsArrayBuffer(file);
+}
+
 // ── SAP ───────────────────────────────────────────────────────────────────────
 document.getElementById('si').addEventListener('input',function(){parseSAP();checkReady();});
 var SAPC={article:1,desc:2,qty:5,price:6,codeManuf:9};
@@ -408,6 +514,15 @@ function runAnalysis(){
   allResults=[];
   var TOL=0.015,usedPDF={},nomIdxs=[];
   setProg(10,'Matching...');
+
+  // Détecter les codes manuf en double dans SAP
+  var codeCount={};
+  sapItems.forEach(function(s){
+    if(s.codeManuf) codeCount[s.codeManuf]=(codeCount[s.codeManuf]||0)+1;
+  });
+  var duplicateCodes={};
+  Object.keys(codeCount).forEach(function(c){ if(codeCount[c]>1) duplicateCodes[c]=true; });
+
   for(var i=0;i<sapItems.length;i++){
     var sap=sapItems[i];
     var av=pdfItems.filter(function(p){return!usedPDF[p.code];});
@@ -496,14 +611,20 @@ function renderTable(rows){
       badge='<span class="badge ber">🔴 '+bp.join(' + ')+'</span>';
     }else{badge='<span class="badge bwa">⚠️ NON TROUVÉ</span>';}
     if(r.method){var bc=r.ai?'bai':(r.conf>=.95?'bok':'bfu');mc='<span class="badge '+bc+'">'+(r.ai?'🤖 IA':'🔗')+' '+r.method+'</span><span class="mm">'+Math.round(r.conf*100)+'% · PDF:'+r.pdfItem.code+'</span>';}
-    // Surbrillance code manuf changé
+    // Surbrillance code manuf changé + alerte doublon
     var cmDisplay = (function(){
       var sc=r.sap.codeManuf||'';
       var pc=r.pdfItem?r.pdfItem.code:'';
-      if(sc&&pc&&sc!==pc&&nc(sc)!==nc(pc)&&!sc.includes(pc)&&!pc.includes(sc)){
-        return '<span style="background:#fff3cd;color:#7a4a00;padding:1px 5px;border-radius:3px;font-weight:bold" title="Code PDF: '+pc+'">'+sc+' ⚠️</span>';
+      var isDup = sc && duplicateCodes[sc];
+      var isChanged = sc&&pc&&sc!==pc&&nc(sc)!==nc(pc)&&!sc.includes(pc)&&!pc.includes(sc);
+      var display = sc||'—';
+      if(isChanged){
+        display = '<span style="background:#fff3cd;color:#7a4a00;padding:1px 5px;border-radius:3px;font-weight:bold" title="Code PDF: '+pc+'">'+sc+' ⚠️</span>';
       }
-      return sc||'—';
+      if(isDup){
+        display += '<span style="display:block;font-size:.58rem;color:#8b1a1a;font-style:italic;margin-top:1px">⚠️ Code utilisé '+codeCount[sc]+'x dans SAP</span>';
+      }
+      return display;
     }());
     tr.innerHTML=
       '<td style="text-align:center;font-weight:bold;color:var(--acc);font-size:.72rem">'+r.sap.lineNbr+'</td>'+
