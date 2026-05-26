@@ -73,9 +73,10 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
     <div class="pbd">
       <div id="dz">
         <div class="ico">📋</div>
-        <div class="lbl" id="dz-lbl">Cliquez ou glissez le PDF ici</div>
+        <div class="lbl" id="dz-lbl">Glissez le PDF ici</div>
         <div class="sub">Fonctionne avec tous les fournisseurs</div>
       </div>
+      <button class="btn btn-s" onclick="document.getElementById('fi').click()" style="margin-top:.5rem;font-size:.75rem;width:100%">📂 Cliquez pour sélectionner un fichier</button>
       <input type="file" id="fi" accept=".pdf" style="display:none">
       <div id="pdf-sb" class="sb i"></div>
       <div id="pdf-prev" style="display:none;margin-top:.65rem;font-size:.7rem;max-height:110px;overflow-y:auto;font-family:monospace;color:var(--mut)"></div>
@@ -158,9 +159,6 @@ var pdfItems=[],sapItems=[],allResults=[],dbgLines=[];
 
 // ── DROP ZONE ─────────────────────────────────────────────────────────────────
 var dz = document.getElementById('dz');
-
-// Clic sur la zone
-dz.addEventListener('click', function(){ document.getElementById('fi').click(); });
 
 // Bloquer l'ouverture du PDF par le navigateur
 document.addEventListener('dragover', function(e){ e.preventDefault(); }, true);
