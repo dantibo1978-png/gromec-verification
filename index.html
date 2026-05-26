@@ -182,22 +182,32 @@ fi2.addEventListener('change',function(){if(this.files&&this.files[0])processBon
   dz.addEventListener('drop',     function(e){e.preventDefault();e.stopPropagation();dz.classList.remove('over');});
 });
 
-// Bloquer ouverture navigateur — intercepte AVANT tout
-document.addEventListener('dragover',function(e){e.preventDefault();},true);
-document.addEventListener('drop',function(e){
-  e.preventDefault();
+// Edge + Outlook : bloquer à TOUS les niveaux avec capture
+['dragenter','dragover','dragleave','drop'].forEach(function(evt){
+  document.addEventListener(evt,function(e){e.preventDefault();e.stopPropagation();if(evt==='dragover'&&e.dataTransfer)e.dataTransfer.dropEffect='copy';},true);
+  document.body.addEventListener(evt,function(e){e.preventDefault();e.stopPropagation();},true);
+});
+
+// Drop sur dz1
+dz1.addEventListener('dragenter',function(e){e.preventDefault();e.stopPropagation();dz1.classList.add('over');},true);
+dz1.addEventListener('dragover', function(e){e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';dz1.classList.add('over');},true);
+dz1.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();dz1.classList.remove('over');},true);
+dz1.addEventListener('drop',     function(e){
+  e.preventDefault();e.stopPropagation();
+  dz1.classList.remove('over');
   var files=e.dataTransfer&&e.dataTransfer.files;
-  if(!files||!files.length)return;
-  var x=e.clientX,y=e.clientY;
-  var r1=dz1.getBoundingClientRect();
-  var r2=dz2.getBoundingClientRect();
-  if(x>=r1.left&&x<=r1.right&&y>=r1.top&&y<=r1.bottom){
-    dz1.classList.remove('over');
-    processPDF(files[0]);
-  }else if(x>=r2.left&&x<=r2.right&&y>=r2.top&&y<=r2.bottom){
-    dz2.classList.remove('over');
-    processBonCommande(files[0]);
-  }
+  if(files&&files.length>0)processPDF(files[0]);
+},true);
+
+// Drop sur dz2
+dz2.addEventListener('dragenter',function(e){e.preventDefault();e.stopPropagation();dz2.classList.add('over');},true);
+dz2.addEventListener('dragover', function(e){e.preventDefault();e.stopPropagation();if(e.dataTransfer)e.dataTransfer.dropEffect='copy';dz2.classList.add('over');},true);
+dz2.addEventListener('dragleave',function(e){e.preventDefault();e.stopPropagation();dz2.classList.remove('over');},true);
+dz2.addEventListener('drop',     function(e){
+  e.preventDefault();e.stopPropagation();
+  dz2.classList.remove('over');
+  var files=e.dataTransfer&&e.dataTransfer.files;
+  if(files&&files.length>0)processBonCommande(files[0]);
 },true);
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
