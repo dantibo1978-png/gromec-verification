@@ -225,7 +225,7 @@ function extractFromPDF(b64, fname, callNum, startAfterLine, accumulated){
     'Pour chaque article:\n'+
     '- lineNbr: numéro de ligne\n'+
     '- code: code article fournisseur\n'+
-    '- qty: quantité commandée\n'+
+    '- qty: quantité TOTALE = QUANTITY + B/O QTY. Ex: QUANTITY=1 B/O=4 → qty=5\n'+
     '- netUnit: prix UNITAIRE (pas le total de ligne)\n'+
     '- netTotal: prix total de la ligne\n\n'+
     'RÈGLES:\n'+
