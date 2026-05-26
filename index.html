@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vérification Commande — Gromec</title>
 <style>
-:root{--bg:#f5f4f0;--sur:#fff;--brd:#e2e0d8;--txt:#1a1a18;--mut:#6b6b64;--acc:#1a3a5c;--acl:#e8eef5;--ok:#1a6b3a;--okb:#e8f5ee;--er:#8b1a1a;--erb:#fdeaea;--wa:#7a4a00;--wab:#fff3dc;--ai:#4a1a6b;--aib:#f0e8f5}
+:root{--bg:#f5f4f0;--sur:#fff;--brd:#e2e0d8;--txt:#1a1a18;--mut:#6b6b64;--acc:#1a3a5c;--acl:#e8eef5;--ok:#1a6b3a;--okb:#e8f5ee;--er:#8b1a1a;--erb:#fdeaea;--wa:#7a4a00;--wab:#fff3dc;--ai:#4a1a6b;--aib:#f0e8f5;--red:#c8502a}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Georgia,serif;background:var(--bg);color:var(--txt);min-height:100vh}
 header{background:var(--acc);color:#fff;padding:1rem 2rem;display:flex;align-items:baseline;gap:1rem}
@@ -17,8 +17,8 @@ header span{font-size:.7rem;opacity:.5;font-family:monospace}
 .phd{background:var(--acc);color:#fff;padding:.5rem 1rem;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
 .phd .tag{background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;font-size:.66rem}
 .pbd{padding:.9rem}
-#dz{border:2px dashed var(--brd);border-radius:5px;padding:1.5rem;text-align:center;background:var(--bg);min-height:115px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem}
-#dz:hover,#dz.over{border-color:var(--acc);background:var(--acl)}
+#dz{border:2px dashed var(--brd);border-radius:5px;padding:1.5rem;text-align:center;background:var(--bg);min-height:130px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.35rem}
+#dz.over{border-color:var(--acc);background:var(--acl)}
 #dz.ok{border-color:var(--ok);background:var(--okb)}
 #dz .ico{font-size:1.7rem;opacity:.35}
 #dz .lbl{font-size:.82rem;color:var(--mut)}
@@ -62,8 +62,8 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
 </style>
 </head>
 <body>
-<header data-version="v2026-05-25-TEST">
-  <h1>Vérification de Commande Fournisseur</h1><span style="background:#c8502a;color:white;padding:2px 8px;border-radius:3px;font-size:.7rem;font-family:monospace;margin-left:1rem">v25-MAI-20h00</span>
+<header>
+  <h1>Vérification de Commande Fournisseur</h1>
   <span>PDF + SAP → comparaison automatique par IA — Gromec Inc.</span>
 </header>
 
@@ -71,12 +71,12 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
   <div class="panel">
     <div class="phd">📄 Confirmation PDF fournisseur <span class="tag">Étape 1</span></div>
     <div class="pbd">
+      <!-- DROP ZONE : div simple, même structure que test_drop.html -->
       <div id="dz">
         <div class="ico">📋</div>
-        <div class="lbl" id="dz-lbl">Glissez le PDF ici</div>
+        <div class="lbl" id="dz-lbl">Cliquez ou glissez le PDF ici</div>
         <div class="sub">Fonctionne avec tous les fournisseurs</div>
       </div>
-      <button class="btn btn-s" onclick="document.getElementById('fi').click()" style="margin-top:.5rem;font-size:.75rem;width:100%">📂 Cliquez pour sélectionner un fichier</button>
       <input type="file" id="fi" accept=".pdf" style="display:none">
       <div id="pdf-sb" class="sb i"></div>
       <div id="pdf-prev" style="display:none;margin-top:.65rem;font-size:.7rem;max-height:110px;overflow-y:auto;font-family:monospace;color:var(--mut)"></div>
@@ -141,12 +141,8 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
         <button class="btn btn-s" onclick="window.print()">🖨️ Imprimer</button>
       </div>
       <div class="exp" style="border-top:none;padding-top:0;margin-top:.5rem">
-        <button class="btn" onclick="copierPrix()" style="background:#1a6b3a" title="Copie les prix PDF en ordre de ligne SAP — colle directement dans SAP">
-          📋 Copier prix → SAP
-        </button>
-        <button class="btn" onclick="copierQty()" style="background:#1a6b3a" title="Copie les quantités PDF en ordre de ligne SAP — colle directement dans SAP">
-          📋 Copier quantités → SAP
-        </button>
+        <button class="btn" onclick="copierPrix()" style="background:var(--ok)" title="Copie les prix PDF en ordre de ligne SAP">📋 Copier prix → SAP</button>
+        <button class="btn" onclick="copierQty()" style="background:var(--ok)" title="Copie les quantités PDF en ordre de ligne SAP">📋 Copier quantités → SAP</button>
         <span id="copy-note" style="font-size:.75rem;color:var(--ok);font-weight:bold;margin-left:.4rem"></span>
         <span id="enote" style="font-size:.7rem;color:var(--mut);margin-left:.4rem"></span>
       </div>
@@ -157,112 +153,88 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
 <script>
 var pdfItems=[],sapItems=[],allResults=[],dbgLines=[];
 
-// ── DROP ZONE ─────────────────────────────────────────────────────────────────
+// ── DROP ZONE — copié exactement de test_drop.html qui fonctionne ─────────────
 var dz = document.getElementById('dz');
+var fi = document.getElementById('fi');
 
-// Bloquer l'ouverture du PDF par le navigateur
+// Clic sur la zone → ouvre le sélecteur
+dz.addEventListener('click', function(){ fi.click(); });
+
+// Sélection via input file
+fi.addEventListener('change', function(){
+  if(this.files && this.files[0]) processPDF(this.files[0]);
+});
+
+// Bloquer le navigateur d'ouvrir le PDF — IDENTIQUE au test_drop.html
 document.addEventListener('dragover', function(e){ e.preventDefault(); }, true);
 document.addEventListener('drop',     function(e){ e.preventDefault(); }, true);
 
-dz.addEventListener('dragenter', function(e){ e.preventDefault(); dz.classList.add('over'); });
-dz.addEventListener('dragover',  function(e){ e.preventDefault(); dz.classList.add('over'); });
-dz.addEventListener('dragleave', function(e){ e.preventDefault(); dz.classList.remove('over'); });
+// Listeners sur la zone — IDENTIQUES au test_drop.html
+dz.addEventListener('dragenter', function(e){
+  e.preventDefault();
+  dz.classList.add('over');
+});
+dz.addEventListener('dragover', function(e){
+  e.preventDefault();
+  dz.classList.add('over');
+});
+dz.addEventListener('dragleave', function(e){
+  e.preventDefault();
+  dz.classList.remove('over');
+});
 dz.addEventListener('drop', function(e){
   e.preventDefault();
   e.stopPropagation();
   dz.classList.remove('over');
-  var f = e.dataTransfer.files[0];
-  if(f) processPDF(f);
+  var files = e.dataTransfer.files;
+  if(files && files.length > 0){
+    processPDF(files[0]);
+  }
 });
 
-// Input file pour le clic
-document.getElementById('fi').addEventListener('change', function(){
-  if(this.files[0]) processPDF(this.files[0]);
-});
-
-// ── PDF ───────────────────────────────────────────────────────────────────────
+// ── PDF → CLAUDE (multi-appels pour gros PDFs) ───────────────────────────────
 function processPDF(file){
   setSB('pdf-sb','i','⏳ Lecture de '+file.name+'...');
   dz.classList.remove('ok');
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var bytes=new Uint8Array(e.target.result);
-    var b64='',CHUNK=8192;
-    for(var i=0;i<bytes.length;i+=CHUNK){
-      b64+=String.fromCharCode.apply(null,bytes.subarray(i,i+CHUNK));
+  var reader = new FileReader();
+  reader.onload = function(e){
+    var bytes = new Uint8Array(e.target.result);
+    var b64 = '', CHUNK = 8192;
+    for(var i=0; i<bytes.length; i+=CHUNK){
+      b64 += String.fromCharCode.apply(null, bytes.subarray(i, i+CHUNK));
     }
-    b64=btoa(b64);
-    var fileSizeKb=Math.round(bytes.length/1024);
-    log('PDF: '+file.name+' ('+fileSizeKb+'kb)');
-
-    // Pour les petits PDFs (< 500kb) : 1 seul appel
-    // Pour les grands PDFs : on fait quand même 1 appel mais on demande TOUT
-    setSB('pdf-sb','i','⏳ Claude analyse le PDF ('+fileSizeKb+'kb)...');
-    extractFromPDF(b64, file.name, 1, null, [], function(allItems){
-      pdfItems = allItems;
-      log('Total articles extraits: '+pdfItems.length);
-      if(pdfItems.length>0){
-        setSB('pdf-sb','o','✅ '+pdfItems.length+' articles extraits');
-        dz.classList.add('ok');
-        document.getElementById('dz-lbl').textContent='✅ '+pdfItems.length+' articles — glissez un autre PDF pour changer';
-        var prev=document.getElementById('pdf-prev');
-        prev.style.display='block';
-        prev.innerHTML='<b style="color:var(--acc)">Aperçu:</b><br>'+
-          pdfItems.slice(0,5).map(function(p){return '<div style="padding:2px 0;border-bottom:1px solid var(--brd)">L'+p.lineNbr+' · '+p.code+' · Qté:'+p.qty+' · <b>$'+p.netUnit.toFixed(4)+'</b></div>';}).join('')+
-          (pdfItems.length>5?'<div>...+'+(pdfItems.length-5)+' autres</div>':'');
-      }else{setSB('pdf-sb','e','❌ Aucun article — voir 🔧 Debug');}
-      checkReady();
-    });
+    b64 = btoa(b64);
+    log('PDF: '+file.name+' ('+Math.round(bytes.length/1024)+'kb)');
+    extractFromPDF(b64, file.name, 1, null, []);
   };
   reader.readAsArrayBuffer(file);
 }
 
-function extractFromPDF(b64, fname, callNum, startAfterLine, accumulated, callback){
-  var startMsg = startAfterLine ? ' (suite après ligne '+startAfterLine+')' : '';
-  setSB('pdf-sb','i','⏳ Appel '+callNum+startMsg+'...');
+function extractFromPDF(b64, fname, callNum, startAfterLine, accumulated){
+  var msg = '⏳ Analyse IA' + (callNum>1 ? ' — appel '+callNum+' (ligne '+startAfterLine+'+)' : '') + '...';
+  setSB('pdf-sb','i', msg);
 
-  var prompt = 'Tu es un expert en vérification de commandes industrielles.
-
-'+
-    'Lis ce bon de confirmation (TOUTES les pages) et extrais TOUS les articles commandés.
-
-';
+  var prompt = 'Tu es un expert en vérification de commandes industrielles.\n\n'+
+    'Lis ce bon de confirmation (TOUTES les pages) et extrais TOUS les articles.\n\n';
 
   if(startAfterLine){
-    prompt += 'IMPORTANT: Retourne SEULEMENT les articles avec lineNbr > '+startAfterLine+'. Ignore les lignes déjà traitées.
-
-';
+    prompt += 'Retourne SEULEMENT les articles avec lineNbr STRICTEMENT supérieur à '+startAfterLine+'.\n\n';
   }
 
-  prompt += 'Pour chaque article:
-'+
-    '- lineNbr: numéro de ligne
-'+
-    '- code: code article fournisseur
-'+
-    '- qty: quantité commandée
-'+
-    '- netUnit: prix UNITAIRE (pas le total)
-'+
-    '- netTotal: prix total de la ligne
-
-'+
-    'RÈGLES:
-'+
-    '- netUnit = prix UNE unité. Si qty=3 total=31.75 → netUnit=10.5838
-'+
-    '- ASC: colonne NET (sous LIST) = netUnit
-'+
-    '- MA Stewart: List × Factor = netUnit
-'+
-    '- Inclure TOUS les articles de TOUTES les pages
-
-'+
-    'JSON uniquement sans texte ni backticks:
-'+
-    '{"items":[{"lineNbr":1,"code":"4385003190","qty":3,"netUnit":10.5838,"netTotal":31.75}],"hasMore":false}';
-
-  // hasMore = true si la réponse a été tronquée et il reste des articles
+  prompt +=
+    'Pour chaque article:\n'+
+    '- lineNbr: numéro de ligne\n'+
+    '- code: code article fournisseur\n'+
+    '- qty: quantité commandée\n'+
+    '- netUnit: prix UNITAIRE (pas le total de ligne)\n'+
+    '- netTotal: prix total de la ligne\n\n'+
+    'RÈGLES:\n'+
+    '- netUnit = prix UNE unité. qty=3 total=31.75 → netUnit=10.5838\n'+
+    '- ASC: colonne NET (sous LIST) = netUnit\n'+
+    '- MA Stewart: List × Factor = netUnit\n'+
+    '- Si tu as pu tout inclure: hasMore=false. Si tronqué: hasMore=true\n\n'+
+    'JSON uniquement:\n'+
+    '{"items":[{"lineNbr":1,"code":"ABC","qty":3,"netUnit":10.58,"netTotal":31.75}],"hasMore":false}';
 
   fetch('https://claude-proxy.dantibo1978.workers.dev',{
     method:'POST',
@@ -276,33 +248,29 @@ function extractFromPDF(b64, fname, callNum, startAfterLine, accumulated, callba
       ]}]
     })
   }).then(function(r){return r.json();}).then(function(d){
-    if(d.error)throw new Error(d.error.message);
-    var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
-    log('Appel '+callNum+' réponse: '+t.substring(0,200));
+    if(d.error) throw new Error(d.error.message);
+    var t=''; (d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
+    log('Appel '+callNum+': '+t.substring(0,300));
 
-    // Parser le JSON, même s'il est tronqué
-    var cleanT=t.replace(/```json|```/g,'').trim();
-    var parsed={items:[],hasMore:false};
+    var clean = t.replace(/```json|```/g,'').trim();
+    var parsed = {items:[], hasMore:false};
     try{
-      parsed=JSON.parse(cleanT);
+      parsed = JSON.parse(clean);
     }catch(e){
-      // JSON tronqué - récupérer ce qu'on peut
-      log('JSON tronqué, récupération partielle...');
-      var lastGood=cleanT.lastIndexOf('}');
-      var itemsStart=cleanT.indexOf('[');
-      if(itemsStart>=0 && lastGood>itemsStart){
-        try{
-          var partial='{"items":'+cleanT.substring(itemsStart,lastGood+1)+'],"hasMore":true}';
-          parsed=JSON.parse(partial);
-          log('Récupéré '+parsed.items.length+' articles partiels');
-        }catch(e2){
-          log('Impossible de récupérer JSON: '+e2.message);
+      log('JSON tronqué, récupération...');
+      try{
+        var iStart = clean.indexOf('[');
+        var iEnd = clean.lastIndexOf('{"lineNbr"');
+        var iEndFull = clean.indexOf('}', iEnd);
+        if(iStart>=0 && iEndFull>iStart){
+          var partial = '{"items":'+clean.substring(iStart,iEndFull+1)+'],"hasMore":true}';
+          parsed = JSON.parse(partial);
         }
-      }
-      parsed.hasMore=true; // Il reste probablement des articles
+      }catch(e2){ log('Récupération échouée: '+e2.message); }
+      parsed.hasMore = true;
     }
 
-    var newItems=(parsed.items||[]).map(function(i){return{
+    var newItems = (parsed.items||[]).map(function(i){return{
       lineNbr:parseInt(i.lineNbr)||1,
       code:String(i.code||'').trim(),
       qty:parseInt(i.qty)||1,
@@ -311,28 +279,42 @@ function extractFromPDF(b64, fname, callNum, startAfterLine, accumulated, callba
       rawLine:'L'+i.lineNbr+' '+i.code
     };}).filter(function(i){return i.code&&i.netUnit>0;});
 
-    var combined=accumulated.concat(newItems);
+    var combined = accumulated.concat(newItems);
     log('Appel '+callNum+': '+newItems.length+' nouveaux, total: '+combined.length);
 
-    // Continuer si hasMore et qu'on a eu des résultats
     if(parsed.hasMore && newItems.length>0 && callNum<10){
-      var lastLine=newItems[newItems.length-1].lineNbr;
-      extractFromPDF(b64, fname, callNum+1, lastLine, combined, callback);
-    }else{
-      callback(combined);
+      var lastLine = newItems[newItems.length-1].lineNbr;
+      extractFromPDF(b64, fname, callNum+1, lastLine, combined);
+    } else {
+      pdfItems = combined;
+      log('Articles total: '+pdfItems.length);
+      if(pdfItems.length>0){
+        setSB('pdf-sb','o','✅ '+pdfItems.length+' articles extraits'+(callNum>1?' ('+callNum+' appels)':''));
+        dz.classList.add('ok');
+        document.getElementById('dz-lbl').textContent = '✅ '+pdfItems.length+' articles — cliquez pour changer';
+        var prev = document.getElementById('pdf-prev');
+        prev.style.display='block';
+        prev.innerHTML = '<b style="color:var(--acc)">Aperçu:</b><br>'+
+          pdfItems.slice(0,5).map(function(p){
+            return '<div style="padding:2px 0;border-bottom:1px solid var(--brd)">L'+p.lineNbr+' · '+p.code+' · Qté:'+p.qty+' · <b>$'+p.netUnit.toFixed(4)+'</b></div>';
+          }).join('')+(pdfItems.length>5?'<div>...+'+(pdfItems.length-5)+' autres</div>':'');
+      } else {
+        setSB('pdf-sb','e','❌ Aucun article — voir 🔧 Debug');
+      }
+      checkReady();
     }
   }).catch(function(e){
-    log('ERR appel '+callNum+': '+e.message);
+    log('ERR: '+e.message);
     if(accumulated.length>0){
-      // On a quand même des résultats partiels
-      callback(accumulated);
-    }else{
+      pdfItems = accumulated;
+      setSB('pdf-sb','o','✅ '+pdfItems.length+' articles (partiel)');
+      checkReady();
+    } else {
       setSB('pdf-sb','e','❌ '+e.message);
       checkReady();
     }
   });
 }
-
 
 // ── SAP ───────────────────────────────────────────────────────────────────────
 document.getElementById('si').addEventListener('input',function(){parseSAP();checkReady();});
@@ -399,34 +381,18 @@ function aiMatch(unmSAP,unmPDF,cb){
   var pl=unmPDF.map(function(p,i){return'PDF['+i+'] Code:'+p.code+' Qté:'+p.qty+' Unit:'+p.netUnit;}).join('\n');
   fetch('https://claude-proxy.dantibo1978.workers.dev',{
     method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:1000,messages:[{role:'user',content:
-      'Tu es un expert en vérification de commandes de robinetterie et raccorderie industrielle.\n\n'+
-      'Ton rôle: trouver les correspondances entre articles SAP et PDF qui n\'ont pas été matchés automatiquement.\n\n'+
-      'STRATÉGIES DE MATCHING - applique-les toutes:\n\n'+
-      '1. CODE SIMILAIRE: ignore zéros initiaux, tirets, espaces, majuscules/minuscules\n'+
-      '   Ex: "015-20063" = "15 20063" = "01520063"\n\n'+
-      '2. CODE DANS DESCRIPTION: le code PDF peut apparaître dans la description SAP\n'+
-      '   Ex: PDF code "238T1B6F" → SAP desc contient "238T1B6F"\n\n'+
-      '3. DESCRIPTION SÉMANTIQUE - c\'est le plus important:\n'+
-      '   Compare le TYPE, MATÉRIAU, DIMENSION et NORME:\n'+
-      '   - Types: TEE=TÉ, ELBOW=COUDE, REDUCER=RÉDUCTEUR, COUPLING=MANCHON, CAP=BOUCHON\n'+
-      '     NIPPLE=MAMELON, UNION=UNION, FLANGE=BRIDE, VALVE=VANNE, BUSHING=RÉDUCTION\n'+
-      '   - Matériaux: SS304=ACIER INOX 304, SS316=ACIER INOX 316, BRZ=BRONZE, CI=FONTE\n'+
-      '     GALV=GALVANISÉ, BRASS=LAITON, CS=ACIER CARBONE\n'+
-      '   - Dimensions: 2"X3/8" = 2 X 3/8, 1-1/2 = 1.5, SCH10=SCH 10\n'+
-      '   - Normes: 150LB=150#=150LBS, 2000WOG=2000PSI\n'+
-      '   Ex: "2 X 3/8 150LB FILETE REDUIT HEX 316" = "REDUIT HEXAGONAL ACIER INOXYDABLE 2\" X 3/8\" 316"\n\n'+
-      '4. PRIX ET QUANTITÉ comme confirmation:\n'+
-      '   Si description similaire ET prix proche → confidence élevée\n\n'+
-      '5. LOGIQUE D\'ÉLIMINATION:\n'+
-      '   Si après tous les matchs il reste X articles SAP et X articles PDF non matchés,\n'+
-      '   essaie de les apparier même avec moins de certitude.\n'+
-      '   Si 1 SAP et 1 PDF restants → confidence minimum 0.70\n\n'+
-      'SAP sans correspondance:\n'+sl+'\n\nPDF sans correspondance:\n'+pl+
-      '\n\nRetourne TOUS les matchs possibles, même avec confidence 0.65.\n'+
-      'Explique ton raisonnement dans "reason" (ex: "réducteur hex 316, dim 2x3/8 identiques, prix $8.80 confirme").\n'+
-      'JSON uniquement:\n'+
-      '{"matches":[{"sap_idx":0,"pdf_idx":0,"confidence":0.85,"reason":"même type réducteur hex, matériau 316, dimensions 2x3/8 identiques"}]}'
+    body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:2000,messages:[{role:'user',content:
+      'Tu es un expert en vérification de commandes industrielles (robinetterie, raccords, vannes).\n\n'+
+      'Trouve les correspondances entre articles SAP et PDF non matchés.\n\n'+
+      'STRATÉGIES:\n'+
+      '1. Code similaire (zéros, tirets ignorés)\n'+
+      '2. Code dans la description\n'+
+      '3. Description sémantique: type+matériau+dimension\n'+
+      '   TEE=TÉ, ELBOW=COUDE, REDUCER=RÉDUCTEUR, SS304=INOX304, SS316=INOX316\n'+
+      '   BLK=NOIR, GALV=GALVANISÉ, MI=MALLÉABLE, FG=FORGÉ\n'+
+      '4. Si 1 SAP et 1 PDF restants → confidence 0.75 minimum\n\n'+
+      'SAP:\n'+sl+'\n\nPDF:\n'+pl+
+      '\n\nJSON uniquement:\n{"matches":[{"sap_idx":0,"pdf_idx":0,"confidence":0.85,"reason":"même code"}]}'
     }]})
   }).then(function(r){return r.json();}).then(function(d){
     var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
@@ -502,7 +468,6 @@ function renderResults(){
   var ain=document.getElementById('ain');
   if(ai>0){ain.style.display='block';ain.textContent='🤖 '+ai+' article(s) matchés par IA — vérifiez avant d\'approuver.';}
   else ain.style.display='none';
-  // Trier: écarts en premier puis par ligne
   var ord={diff:0,nom:1,ok:2};
   allResults.sort(function(a,b){var sd=(ord[a.status]||3)-(ord[b.status]||3);return sd!==0?sd:a.sap.lineNbr-b.sap.lineNbr;});
   renderTable(allResults);
@@ -531,19 +496,20 @@ function renderTable(rows){
       badge='<span class="badge ber">🔴 '+bp.join(' + ')+'</span>';
     }else{badge='<span class="badge bwa">⚠️ NON TROUVÉ</span>';}
     if(r.method){var bc=r.ai?'bai':(r.conf>=.95?'bok':'bfu');mc='<span class="badge '+bc+'">'+(r.ai?'🤖 IA':'🔗')+' '+r.method+'</span><span class="mm">'+Math.round(r.conf*100)+'% · PDF:'+r.pdfItem.code+'</span>';}
+    // Surbrillance code manuf changé
+    var cmDisplay = (function(){
+      var sc=r.sap.codeManuf||'';
+      var pc=r.pdfItem?r.pdfItem.code:'';
+      if(sc&&pc&&sc!==pc&&nc(sc)!==nc(pc)&&!sc.includes(pc)&&!pc.includes(sc)){
+        return '<span style="background:#fff3cd;color:#7a4a00;padding:1px 5px;border-radius:3px;font-weight:bold" title="Code PDF: '+pc+'">'+sc+' ⚠️</span>';
+      }
+      return sc||'—';
+    }());
     tr.innerHTML=
       '<td style="text-align:center;font-weight:bold;color:var(--acc);font-size:.72rem">'+r.sap.lineNbr+'</td>'+
       '<td>'+badge+'</td>'+
       '<td class="mo">'+r.sap.article+'</td>'+
-      '<td class="mo">'+(function(){
-        var sc=r.sap.codeManuf||'';
-        var pc=r.pdfItem?r.pdfItem.code:'';
-        // Si le code PDF diffère du code manuf SAP et que ce n'est pas juste un format différent
-        if(sc && pc && sc!==pc && nc(sc)!==nc(pc) && !sc.includes(pc) && !pc.includes(sc)){
-          return '<span style="background:#fff3cd;color:#7a4a00;padding:1px 5px;border-radius:3px;font-weight:bold" title="Code PDF: '+pc+'">'+sc+' ⚠️</span>';
-        }
-        return sc||'—';
-      }())+'</td>'+
+      '<td class="mo">'+cmDisplay+'</td>'+
       '<td style="max-width:155px;font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+r.sap.desc+'">'+r.sap.desc+'</td>'+
       '<td style="text-align:center">'+r.sap.qty+'</td>'+
       '<td style="text-align:center">'+(pdfQty!==null?pdfQty:'—')+'</td>'+
@@ -564,45 +530,25 @@ function filt(t,btn){
   renderTable(m[t]||allResults);
 }
 
-// ── EXPORT ────────────────────────────────────────────────────────────────────
+// ── COPIER PRIX / QTÉ ────────────────────────────────────────────────────────
 function copierPrix(){
-  // Trier par numéro de ligne SAP croissant
-  var sorted = allResults.slice().sort(function(a,b){ return a.sap.lineNbr - b.sap.lineNbr; });
-  var lignes = sorted.map(function(r){
-    if(r.status==='nom' || r.pdfUnit===null) return ''; // ligne vide si non trouvé
-    return r.pdfUnit.toFixed(4);
-  });
-  var txt = lignes.join('\n');
+  var sorted=allResults.slice().sort(function(a,b){return a.sap.lineNbr-b.sap.lineNbr;});
+  var txt=sorted.map(function(r){return r.pdfUnit!=null?r.pdfUnit.toFixed(4):'';}).join('\n');
   navigator.clipboard.writeText(txt).then(function(){
-    document.getElementById('copy-note').textContent='✅ '+sorted.length+' prix copiés!';
-    setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
-  }).catch(function(){
-    // Fallback
-    var ta=document.createElement('textarea');
-    ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
     document.getElementById('copy-note').textContent='✅ Prix copiés!';
     setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
   });
 }
-
 function copierQty(){
-  var sorted = allResults.slice().sort(function(a,b){ return a.sap.lineNbr - b.sap.lineNbr; });
-  var lignes = sorted.map(function(r){
-    if(r.status==='nom' || !r.pdfItem) return '';
-    return r.pdfItem.qty;
-  });
-  var txt = lignes.join('\n');
+  var sorted=allResults.slice().sort(function(a,b){return a.sap.lineNbr-b.sap.lineNbr;});
+  var txt=sorted.map(function(r){return r.pdfItem?r.pdfItem.qty:'';}).join('\n');
   navigator.clipboard.writeText(txt).then(function(){
-    document.getElementById('copy-note').textContent='✅ '+sorted.length+' quantités copiées!';
-    setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
-  }).catch(function(){
-    var ta=document.createElement('textarea');
-    ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
     document.getElementById('copy-note').textContent='✅ Quantités copiées!';
     setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
   });
 }
 
+// ── EXPORT ────────────────────────────────────────────────────────────────────
 function exportXLSX(){
   if(!allResults.length){alert('Aucun résultat.');return;}
   var btn=document.querySelector('button[onclick="exportXLSX()"]');
@@ -611,7 +557,7 @@ function exportXLSX(){
   var sorted=allResults.slice().sort(function(a,b){var sd=(ord[a.status]||3)-(ord[b.status]||3);return sd!==0?sd:a.sap.lineNbr-b.sap.lineNbr;});
   var rows=sorted.map(function(r){return{ligne:r.sap.lineNbr,article:r.sap.article,codeManuf:r.sap.codeManuf||'',desc:r.sap.desc,qty:r.sap.qty,qtePDF:r.pdfItem?r.pdfItem.qty:'',diffQty:r.diffQty!=null?r.diffQty:'',prixSAP:r.sap.price!=null?parseFloat(r.sap.price.toFixed(4)):'',prixPDF:r.pdfUnit!=null?parseFloat(r.pdfUnit.toFixed(4)):'',diffUnit:r.diffUnit!=null?parseFloat(r.diffUnit.toFixed(4)):'',diffTotal:r.diffTotal!=null?parseFloat(r.diffTotal.toFixed(4)):'',methode:r.method||'',confiance:r.conf?Math.round(r.conf*100):'',statut:r.status==='ok'?'CONFORME':r.status==='diff'?'ECART':'NON TROUVE'};});
   var resume={date:new Date().toLocaleDateString('fr-CA'),total:allResults.length,conformes:allResults.filter(function(r){return r.status==='ok';}).length,ecarts:allResults.filter(function(r){return r.status==='diff';}).length,nonTrouves:allResults.filter(function(r){return r.status==='nom';}).length,impact:parseFloat(allResults.reduce(function(s,r){return s+(r.diffTotal||0);},0).toFixed(2))};
-  fetch('https://claude-proxy.dantibo1978.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:8000,messages:[{role:'user',content:'Exécute ce code Python et retourne UNIQUEMENT la ligne commençant par XLSX_B64: sans aucun autre texte.\n\n```python\nimport openpyxl,base64,io,json\nfrom openpyxl.styles import Font,PatternFill,Alignment,Border,Side\nfrom openpyxl.utils import get_column_letter\ndata=json.loads(\'\'\''+JSON.stringify({rows:rows,resume:resume})+'\'\'\') \nrows=data["rows"];resume=data["resume"]\nwb=openpyxl.Workbook();ws=wb.active;ws.title="Verification"\nHF=PatternFill("solid",fgColor="1A3A5C");HFT=Font(name="Arial",bold=True,color="FFFFFF",size=10)\nTHIN=Side(style="thin",color="E2E0D8");BORD=Border(left=THIN,right=THIN,top=THIN,bottom=THIN)\nFILLS={"CONFORME":PatternFill("solid",fgColor="E8F5EE"),"ECART":PatternFill("solid",fgColor="FDEAEA"),"NON TROUVE":PatternFill("solid",fgColor="FFFBE8")}\nFST={"CONFORME":Font(name="Arial",bold=True,color="1A6B3A",size=10),"ECART":Font(name="Arial",bold=True,color="8B1A1A",size=10),"NON TROUVE":Font(name="Arial",bold=True,color="7A4A00",size=10)}\nFB=Font(name="Arial",size=10);FP=Font(name="Arial",bold=True,color="8B1A1A",size=10);FN=Font(name="Arial",bold=True,color="1A6B3A",size=10)\nhdrs=["Ligne","Article SAP","Code Manuf.","Description","Qty SAP","Qty PDF","Diff Qty","Prix SAP","Prix PDF","Diff Unit","Diff Total","Methode","Confiance","Statut"]\nws.append(hdrs)\nfor c,h in enumerate(hdrs,1):\n cell=ws.cell(1,c);cell.font=HFT;cell.fill=HF;cell.alignment=Alignment(horizontal="center",vertical="center")\nfor row in rows:\n vals=[row["ligne"],row["article"],row["codeManuf"],row["desc"],row["qty"],row["qtePDF"],row["diffQty"],row["prixSAP"],row["prixPDF"],row["diffUnit"],row["diffTotal"],row["methode"],row["confiance"],row["statut"]]\n ws.append(vals);r=ws.max_row;fill=FILLS.get(row["statut"],PatternFill())\n for c in range(1,15):\n  cell=ws.cell(r,c);cell.fill=fill;cell.border=BORD;cell.font=FB\n  if c==1:cell.alignment=Alignment(horizontal="center")\n  if c in[8,9,10,11]:cell.number_format="#,##0.0000";cell.alignment=Alignment(horizontal="right")\n  if c in[5,6,7]:cell.alignment=Alignment(horizontal="center")\n  if c in[10,11] and isinstance(cell.value,(int,float)):\n   if cell.value>0.015:cell.font=FP\n   elif cell.value<-0.015:cell.font=FN\n  if c==13:cell.alignment=Alignment(horizontal="center")\n  if c==14:cell.font=FST.get(row["statut"],FB);cell.alignment=Alignment(horizontal="center")\nws.freeze_panes="A2"\nfor i,w in enumerate([9,13,14,48,7,7,8,14,14,14,13,30,11,12],1):ws.column_dimensions[get_column_letter(i)].width=w\nws2=wb.create_sheet("Resume");ws2["A1"]="RAPPORT DE VERIFICATION";ws2["A1"].font=Font(name="Arial",bold=True,size=14,color="1A3A5C")\nws2.append(["Date",resume["date"]]);ws2.append([])\nfor lbl,val in[("Total",resume["total"]),("Conformes",resume["conformes"]),("Ecarts",resume["ecarts"]),("Non trouves",resume["nonTrouves"]),("Impact($)",resume["impact"])]:ws2.append([lbl,val])\nws2.column_dimensions["A"].width=25;ws2.column_dimensions["B"].width=20\nbuf=io.BytesIO();wb.save(buf);buf.seek(0)\nprint("XLSX_B64:"+base64.b64encode(buf.read()).decode())\n```'}]})}).then(function(r){return r.json();}).then(function(d){
+  fetch('https://claude-proxy.dantibo1978.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-5',max_tokens:8000,messages:[{role:'user',content:'Exécute ce code Python et retourne UNIQUEMENT la ligne commençant par XLSX_B64:\n\n```python\nimport openpyxl,base64,io,json\nfrom openpyxl.styles import Font,PatternFill,Alignment,Border,Side\nfrom openpyxl.utils import get_column_letter\ndata=json.loads(\'\'\''+JSON.stringify({rows:rows,resume:resume})+'\'\'\') \nrows=data["rows"];resume=data["resume"]\nwb=openpyxl.Workbook();ws=wb.active;ws.title="Verification"\nHF=PatternFill("solid",fgColor="1A3A5C");HFT=Font(name="Arial",bold=True,color="FFFFFF",size=10)\nTHIN=Side(style="thin",color="E2E0D8");BORD=Border(left=THIN,right=THIN,top=THIN,bottom=THIN)\nFILLS={"CONFORME":PatternFill("solid",fgColor="E8F5EE"),"ECART":PatternFill("solid",fgColor="FDEAEA"),"NON TROUVE":PatternFill("solid",fgColor="FFFBE8")}\nFST={"CONFORME":Font(name="Arial",bold=True,color="1A6B3A",size=10),"ECART":Font(name="Arial",bold=True,color="8B1A1A",size=10),"NON TROUVE":Font(name="Arial",bold=True,color="7A4A00",size=10)}\nFB=Font(name="Arial",size=10);FP=Font(name="Arial",bold=True,color="8B1A1A",size=10);FN=Font(name="Arial",bold=True,color="1A6B3A",size=10)\nhdrs=["Ligne","Article SAP","Code Manuf.","Description","Qty SAP","Qty PDF","Diff Qty","Prix SAP","Prix PDF","Diff Unit","Diff Total","Methode","Confiance","Statut"]\nws.append(hdrs)\nfor c,h in enumerate(hdrs,1):\n cell=ws.cell(1,c);cell.font=HFT;cell.fill=HF;cell.alignment=Alignment(horizontal="center",vertical="center")\nfor row in rows:\n vals=[row["ligne"],row["article"],row["codeManuf"],row["desc"],row["qty"],row["qtePDF"],row["diffQty"],row["prixSAP"],row["prixPDF"],row["diffUnit"],row["diffTotal"],row["methode"],row["confiance"],row["statut"]]\n ws.append(vals);r=ws.max_row;fill=FILLS.get(row["statut"],PatternFill())\n for c in range(1,15):\n  cell=ws.cell(r,c);cell.fill=fill;cell.border=BORD;cell.font=FB\n  if c==1:cell.alignment=Alignment(horizontal="center")\n  if c in[8,9,10,11]:cell.number_format="#,##0.0000";cell.alignment=Alignment(horizontal="right")\n  if c in[5,6,7]:cell.alignment=Alignment(horizontal="center")\n  if c in[10,11] and isinstance(cell.value,(int,float)):\n   if cell.value>0.015:cell.font=FP\n   elif cell.value<-0.015:cell.font=FN\n  if c==13:cell.alignment=Alignment(horizontal="center")\n  if c==14:cell.font=FST.get(row["statut"],FB);cell.alignment=Alignment(horizontal="center")\nws.freeze_panes="A2"\nfor i,w in enumerate([9,13,14,48,7,7,8,14,14,14,13,30,11,12],1):ws.column_dimensions[get_column_letter(i)].width=w\nws2=wb.create_sheet("Resume");ws2["A1"]="RAPPORT DE VERIFICATION";ws2["A1"].font=Font(name="Arial",bold=True,size=14,color="1A3A5C")\nws2.append(["Date",resume["date"]]);ws2.append([])\nfor lbl,val in[("Total",resume["total"]),("Conformes",resume["conformes"]),("Ecarts",resume["ecarts"]),("Non trouves",resume["nonTrouves"]),("Impact($)",resume["impact"])]:ws2.append([lbl,val])\nws2.column_dimensions["A"].width=25;ws2.column_dimensions["B"].width=20\nbuf=io.BytesIO();wb.save(buf);buf.seek(0)\nprint("XLSX_B64:"+base64.b64encode(buf.read()).decode())\n```'}]})}).then(function(r){return r.json();}).then(function(d){
     var t='';(d.content||[]).forEach(function(b){if(b.type==='text')t+=b.text;});
     var m=t.match(/XLSX_B64:([A-Za-z0-9+\/=\s]+)/);
     if(!m)throw new Error('Pas de base64');
@@ -634,7 +580,7 @@ function exportCSV(){
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'}));
   a.download='verification_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
-  document.getElementById('enote').textContent='✅ CSV téléchargé (séparateur ;)';
+  document.getElementById('enote').textContent='✅ CSV téléchargé';
 }
 
 // ── UTILITAIRES ───────────────────────────────────────────────────────────────
@@ -649,10 +595,11 @@ function clearAll(){
   document.getElementById('prog').style.display='none';
   document.getElementById('dbg').textContent='';
   dz.classList.remove('ok','over');
-  document.getElementById('dz-lbl').textContent='Glissez le PDF ici';
+  document.getElementById('dz-lbl').textContent='Cliquez ou glissez le PDF ici';
   document.getElementById('btn-go').disabled=true;
   document.getElementById('st').textContent='';
   document.getElementById('enote').textContent='';
+  document.getElementById('copy-note').textContent='';
 }
 function setSB(id,t,m){var e=document.getElementById(id);e.className='sb '+t;e.textContent=m;e.style.display='block';}
 function setProg(p,l){document.getElementById('pf').style.width=p+'%';document.getElementById('pl').textContent=l;}
