@@ -81,6 +81,7 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
       </div>
       <input type="file" id="fi1" accept=".pdf" style="display:none">
       <div id="pdf-sb" class="sb i"></div>
+      <div id="supplier-info" style="display:none;margin-top:.5rem;padding:.4rem .7rem;background:var(--acc);color:#fff;border-radius:4px;font-size:.78rem;font-family:monospace;letter-spacing:.03em"></div>
       <div id="pdf-prev" style="display:none;margin-top:.65rem;font-size:.7rem;max-height:100px;overflow-y:auto;font-family:monospace;color:var(--mut)"></div>
       <div id="dbg"></div>
     </div>
@@ -253,7 +254,10 @@ function extractPDF(b64,fname,callNum,startAfter,accumulated){
     '- netUnit: prix UNITAIRE (pas le total). ASC: colonne NET sous LIST. MA Stewart: List×Factor\n'+
     '- netTotal: prix total de la ligne\n\n'+
     'hasMore=true si tronqué, false si tout inclus.\n\n'+
-    'JSON uniquement:\n{"items":[{"lineNbr":1,"code":"ABC","qty":3,"netUnit":10.58,"netTotal":31.75}],"hasMore":false}';
+    'Inclus aussi:\n'+
+    '- supplier: nom du fournisseur\n'+
+    '- orderNum: numéro de commande/confirmation\n\n'+
+    'JSON uniquement:\n{"supplier":"ASC","orderNum":"0015086482","poNum":"9006474","items":[{"lineNbr":1,"code":"ABC","qty":3,"netUnit":10.58,"netTotal":31.75}],"hasMore":false}';
 
   callProxy({model:'claude-sonnet-4-5',max_tokens:16000,messages:[{role:'user',content:[
     {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
@@ -273,7 +277,14 @@ function extractPDF(b64,fname,callNum,startAfter,accumulated){
     }else{
       pdfItems=combined;
       if(pdfItems.length>0){
-        setSB('pdf-sb','o','✅ '+pdfItems.length+' articles'+(callNum>1?' ('+callNum+' appels)':''));
+        var infoTxt='✅ '+pdfItems.length+' articles'+(callNum>1?' ('+callNum+' appels)':'');
+        if(p.supplier||p.orderNum){
+          infoTxt+=' — '+(p.supplier||'')+(p.orderNum?' #'+p.orderNum:'');
+          var info=(p.supplier||'')+(p.orderNum?' — Conf. #'+p.orderNum:'')+(p.poNum?' — BC Gromec #'+p.poNum:'');
+          document.getElementById('supplier-info').textContent=info;
+          document.getElementById('supplier-info').style.display='block';
+        }
+        setSB('pdf-sb','o',infoTxt);
         dz.classList.add('ok');
         document.getElementById('dz-lbl').textContent='✅ '+pdfItems.length+' articles — cliquez pour changer';
         var prev=document.getElementById('pdf-prev');
@@ -553,6 +564,8 @@ function clearAll(){
   document.getElementById('dbg').textContent='';
   dz.classList.remove('ok','over');dz2.classList.remove('ok','over');
   document.getElementById('dz-lbl').textContent='Cliquez ou glissez le PDF ici';
+  document.getElementById('supplier-info').style.display='none';
+  document.getElementById('supplier-info').textContent='';
   document.getElementById('dz2-lbl').textContent='Glissez le bon de commande Gromec (PDF) ici';
   document.getElementById('btn-go').disabled=true;
   document.getElementById('st').textContent='';
