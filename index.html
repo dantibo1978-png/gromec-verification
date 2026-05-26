@@ -159,7 +159,7 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
 </div>
 
 <script>
-var pdfItems=[],sapItems=[],allResults=[],dbgLines=[];
+var pdfItems=[],sapItems=[],allResults=[],dbgLines=[],pdfCurrency='CAD';
 var PROXY='https://claude-proxy.dantibo1978.workers.dev';
 
 // ── GESTION DRAG & DROP ───────────────────────────────────────────────────────
@@ -257,7 +257,7 @@ function extractPDF(b64,fname,callNum,startAfter,accumulated){
     'Inclus aussi:\n'+
     '- supplier: nom du fournisseur\n'+
     '- orderNum: numéro de commande/confirmation\n\n'+
-    'JSON uniquement:\n{"supplier":"ASC","orderNum":"0015086482","poNum":"9006474","items":[{"lineNbr":1,"code":"ABC","qty":3,"netUnit":10.58,"netTotal":31.75}],"hasMore":false}';
+    'JSON uniquement:\n{"supplier":"ASC","orderNum":"0015086482","poNum":"9006474","currency":"CAD","items":[{"lineNbr":1,"code":"ABC","qty":3,"netUnit":10.58,"netTotal":31.75}],"hasMore":false}';
 
   callProxy({model:'claude-sonnet-4-5',max_tokens:16000,messages:[{role:'user',content:[
     {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
@@ -281,10 +281,13 @@ function extractPDF(b64,fname,callNum,startAfter,accumulated){
         if(p.supplier||p.orderNum){
           infoTxt+=' — '+(p.supplier||'')+(p.orderNum?' #'+p.orderNum:'');
           var info=(p.supplier||'')+(p.orderNum?' — Conf. #'+p.orderNum:'')+(p.poNum?' — BC Gromec #'+p.poNum:'');
+          if(p.currency==='USD') info+=' — ⚠️ PRIX EN USD';
           document.getElementById('supplier-info').textContent=info;
+          if(p.currency==='USD') document.getElementById('supplier-info').style.background='#8b1a1a';
           document.getElementById('supplier-info').style.display='block';
         }
         setSB('pdf-sb','o',infoTxt);
+        if(p.currency) pdfCurrency=p.currency;
         dz.classList.add('ok');
         document.getElementById('dz-lbl').textContent='✅ '+pdfItems.length+' articles — cliquez pour changer';
         var prev=document.getElementById('pdf-prev');
@@ -434,12 +437,17 @@ function renderResults(){
   var no=allResults.filter(function(r){return r.status==='nom';}).length;
   var ai=allResults.filter(function(r){return r.ai;}).length;
   var tot=allResults.reduce(function(s,r){return s+(r.diffTotal||0);},0);
+  var totalSAP=allResults.reduce(function(s,r){return s+r.sap.price*r.sap.qty;},0);
+  var totalPDF=allResults.reduce(function(s,r){return s+(r.pdfUnit!=null?r.pdfUnit*r.sap.qty:0);},0);
+  var devPDF=pdfCurrency==='USD'?' USD':' CAD';
   document.getElementById('cards').innerHTML=
     '<div class="card cbl"><div class="l">Articles SAP</div><div class="v">'+allResults.length+'</div></div>'+
     '<div class="card cok"><div class="l">✅ Conformes</div><div class="v">'+ok+'</div></div>'+
     '<div class="card cer"><div class="l">🔴 Écarts</div><div class="v">'+di+'</div></div>'+
     '<div class="card cwa"><div class="l">⚠️ Non trouvés</div><div class="v">'+no+'</div></div>'+
-    '<div class="card '+(Math.abs(tot)>.01?'cer':'cok')+'"><div class="l">Impact $</div><div class="v" style="font-size:1rem">'+(tot>=0?'+':'')+tot.toFixed(2)+'$</div></div>';
+    '<div class="card '+(Math.abs(tot)>.01?'cer':'cok')+'"><div class="l">Impact $</div><div class="v" style="font-size:1rem">'+(tot>=0?'+':'')+tot.toFixed(2)+'$</div></div>'+
+    '<div class="card cbl" style="grid-column:span 2"><div class="l">Total SAP</div><div class="v" style="font-size:1rem">'+totalSAP.toFixed(2)+'$</div></div>'+
+    '<div class="card '+(pdfCurrency==='USD'?'cer':'cbl')+'" style="grid-column:span 3"><div class="l">Total PDF'+(pdfCurrency==='USD'?' ⚠️ USD':'')+' </div><div class="v" style="font-size:1rem">'+totalPDF.toFixed(2)+devPDF+'</div></div>';
   var ain=document.getElementById('ain');
   if(ai>0){ain.style.display='block';ain.textContent='🤖 '+ai+' article(s) matchés par IA — vérifiez avant d\'approuver.';}
   else ain.style.display='none';
@@ -566,6 +574,8 @@ function clearAll(){
   document.getElementById('dz-lbl').textContent='Cliquez ou glissez le PDF ici';
   document.getElementById('supplier-info').style.display='none';
   document.getElementById('supplier-info').textContent='';
+  document.getElementById('supplier-info').style.background='var(--acc)';
+  pdfCurrency='CAD';
   document.getElementById('dz2-lbl').textContent='Glissez le bon de commande Gromec (PDF) ici';
   document.getElementById('btn-go').disabled=true;
   document.getElementById('st').textContent='';
