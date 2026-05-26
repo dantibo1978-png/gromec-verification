@@ -35,7 +35,7 @@ textarea:focus{outline:2px solid var(--acc);border-color:transparent}
 .btn-s{background:transparent;color:var(--acc);border:1px solid var(--acc)}
 .sb{padding:.45rem .8rem;font-size:.75rem;border-radius:4px;margin-top:.55rem;font-family:monospace;display:none}
 .sb.i{background:var(--acl);color:var(--acc)}.sb.o{background:var(--okb);color:var(--ok)}.sb.e{background:var(--erb);color:var(--er)}
-.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem;margin-bottom:1.1rem}
+.cards{display:grid;grid-template-columns:repeat(5,1fr);gap:.8rem;margin-bottom:1.1rem;grid-auto-rows:auto}
 .card{padding:.7rem .8rem;border-radius:5px;border:1px solid var(--brd)}
 .card .l{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin-bottom:.18rem}
 .card .v{font-size:1.25rem;font-weight:bold}
@@ -122,6 +122,7 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
     <div class="phd">📊 Résultats</div>
     <div class="pbd">
       <div id="cards" class="cards"></div>
+      <div id="totaux" style="display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:1.1rem"></div>
       <div id="ain" class="ain" style="display:none"></div>
       <div class="filters">
         <span style="font-size:.7rem;color:var(--mut);margin-right:.2rem">Filtrer :</span>
@@ -446,8 +447,11 @@ function renderResults(){
     '<div class="card cer"><div class="l">🔴 Écarts</div><div class="v">'+di+'</div></div>'+
     '<div class="card cwa"><div class="l">⚠️ Non trouvés</div><div class="v">'+no+'</div></div>'+
     '<div class="card '+(Math.abs(tot)>.01?'cer':'cok')+'"><div class="l">Impact $</div><div class="v" style="font-size:1rem">'+(tot>=0?'+':'')+tot.toFixed(2)+'$</div></div>'+
-    '<div class="card cbl" style="grid-column:span 2"><div class="l">Total SAP</div><div class="v" style="font-size:1rem">'+totalSAP.toFixed(2)+'$</div></div>'+
-    '<div class="card '+(pdfCurrency==='USD'?'cer':'cbl')+'" style="grid-column:span 3"><div class="l">Total PDF'+(pdfCurrency==='USD'?' ⚠️ USD':'')+' </div><div class="v" style="font-size:1rem">'+totalPDF.toFixed(2)+devPDF+'</div></div>';
+'';
+  // Totaux séparés
+  document.getElementById('totaux').innerHTML=
+    '<div class="card cbl"><div class="l">Total SAP</div><div class="v" style="font-size:1rem">'+totalSAP.toFixed(2)+'$</div></div>'+
+    '<div class="card '+(pdfCurrency==='USD'?'cer':'cbl')+'"><div class="l">Total PDF'+(pdfCurrency==='USD'?' ⚠️ USD':'')+' </div><div class="v" style="font-size:1rem">'+totalPDF.toFixed(2)+devPDF+'</div></div>';
   var ain=document.getElementById('ain');
   if(ai>0){ain.style.display='block';ain.textContent='🤖 '+ai+' article(s) matchés par IA — vérifiez avant d\'approuver.';}
   else ain.style.display='none';
