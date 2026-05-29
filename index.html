@@ -67,7 +67,7 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
 <body>
 <header>
   <h1>Vérification de Commande Fournisseur</h1>
-  <span>PDF + SAP → comparaison automatique par IA — Gromec Inc. &nbsp;|&nbsp; v2.1</span>
+  <span>PDF + SAP → comparaison automatique par IA — Gromec Inc. &nbsp;|&nbsp; v2.2</span>
 </header>
 
 <div class="layout">
@@ -392,9 +392,15 @@ function aiMatch(unmSAP,unmPDF,cb){
   var pl=unmPDF.map(function(p,i){return'PDF['+i+'] Code:'+p.code+' Qté:'+p.qty+' Unit:'+p.netUnit;}).join('\n');
   callProxy({model:'claude-sonnet-4-5',max_tokens:2000,messages:[{role:'user',content:
     'Expert commandes industrielles. Trouve correspondances SAP↔PDF.\n\n'+
-    'STRATÉGIES: code similaire, description sémantique (TEE=TÉ, ELBOW=COUDE, REDUCER=RÉDUCTEUR,\n'+
-    'SS316=INOX316, BLK=NOIR, GALV=GALVANISÉ, MI=MALLÉABLE, FG=FORGÉ, tresse=flexible=connect.)\n'+
-    'Si 1 SAP et 1 PDF restants → confidence 0.75 minimum.\n\n'+
+    'STRATÉGIES:\n'+
+    '1. Code similaire (ex: 650598 dans description SAP = code PDF 650598)\n'+
+    '2. Description sémantique: même produit, mots dans ordre différent\n'+
+    '   (TEE=TÉ, ELBOW=COUDE, REDUCER=RÉDUCTEUR, CAP=CAPUCHON, PLUG=BOUCHON,\n'+
+    '    SS316=INOX316, BLK=NOIR, GALV=GALVANISÉ, MI=MALLÉABLE, FG=FORGÉ,\n'+
+    '    COUPLING=MANCHON, BUSHING=RÉDUCTION, WYE=YEE, BEND=COUDE,\n'+
+    '    tresse=flexible=connect., UNI=UNION, ADP=ADAPTEUR)\n'+
+    '3. Si 1 SAP non trouvé ET 1 PDF non utilisé → forcer le match, confidence 0.82 minimum\n'+
+    '4. Cherche le numéro de pièce dans la DESCRIPTION SAP (ex: #650598 → code PDF 650598)\n\n'+
     'SAP:\n'+sl+'\n\nPDF:\n'+pl+
     '\n\nJSON uniquement:\n{"matches":[{"sap_idx":0,"pdf_idx":0,"confidence":0.85,"reason":"même produit"}]}'
   }]},function(t){
@@ -541,15 +547,15 @@ function filt(t,btn){
 // ── COPIER ────────────────────────────────────────────────────────────────────
 function copierPrix(){
   var sorted=allResults.slice().sort(function(a,b){return a.sap.lineNbr-b.sap.lineNbr;});
-  navigator.clipboard.writeText(sorted.map(function(r){return r.pdfUnit!=null?r.pdfUnit.toFixed(4):'';}).join('\n')).then(function(){
-    document.getElementById('copy-note').textContent='✅ Prix copiés!';
+  navigator.clipboard.writeText(sorted.map(function(r){return r.pdfUnit!=null?r.pdfUnit.toFixed(4):r.sap.price.toFixed(4);}).join('\n')).then(function(){
+    document.getElementById('copy-note').textContent='✅ Prix copiés! (SAP conservé si non trouvé)';
     setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
   });
 }
 function copierQty(){
   var sorted=allResults.slice().sort(function(a,b){return a.sap.lineNbr-b.sap.lineNbr;});
-  navigator.clipboard.writeText(sorted.map(function(r){return r.pdfItem?r.pdfItem.qty:'';}).join('\n')).then(function(){
-    document.getElementById('copy-note').textContent='✅ Quantités copiées!';
+  navigator.clipboard.writeText(sorted.map(function(r){return r.pdfItem?r.pdfItem.qty:r.sap.qty;}).join('\n')).then(function(){
+    document.getElementById('copy-note').textContent='✅ Quantités copiées! (SAP conservé si non trouvé)';
     setTimeout(function(){document.getElementById('copy-note').textContent='';},3000);
   });
 }
