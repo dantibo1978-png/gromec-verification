@@ -245,20 +245,44 @@ function processPDF(file){
 
 function extractPDF(b64,fname,callNum,startAfter,accumulated){
   setSB('pdf-sb','i','⏳ Analyse IA'+(callNum>1?' — appel '+callNum:'')+'...');
-  var prompt='Tu es un expert en vérification de commandes industrielles.\n\n'+
-    'Lis ce bon de confirmation (TOUTES les pages) et extrais TOUS les articles.\n\n'+
+  var prompt='Tu es un expert en vérification de commandes industrielles pour Gromec Inc.\n\n'+
+    'Lis ce bon de confirmation fournisseur (TOUTES les pages) et extrais TOUS les articles.\n\n'+
     (startAfter?'Retourne SEULEMENT les articles avec lineNbr > '+startAfter+'.\n\n':'')+
-    'Pour chaque article:\n'+
-    '- lineNbr: numéro de ligne\n'+
-    '- code: code article fournisseur\n'+
-    '- qty: quantité TOTALE = QUANTITY + B/O QTY (back order). Ex: QUANTITY=1 B/O=4 → qty=5\n'+
-    '- netUnit: prix UNITAIRE (pas le total). ASC: colonne NET sous LIST. MA Stewart: List×Factor\n'+
-    '- netTotal: prix total de la ligne\n\n'+
-    'hasMore=true si tronqué, false si tout inclus.\n\n'+
-    'Inclus aussi:\n'+
-    '- supplier: nom du fournisseur\n'+
-    '- orderNum: numéro de commande/confirmation\n\n'+
-    'JSON uniquement:\n{"supplier":"ASC","orderNum":"0015086482","poNum":"9006474","currency":"CAD","items":[{"lineNbr":1,"code":"ABC","qty":3,"netUnit":10.58,"netTotal":31.75}],"hasMore":false}';
+    'DICTIONNAIRE DES FOURNISSEURS — règles spécifiques par format:\n\n'+
+    '• ASC: netUnit = colonne NET (sous LIST), netTotal = NET TOTAL, qty = QUANTITY + B/O QTY\n'+
+    '• MA Stewart / Stewart: netUnit = List × Factor, qty = QUANTITY + B/O QTY\n'+
+    '• Dixon Group Canada: netUnit = colonne NET PRICE, netTotal = colonne AMOUNT, qty = QUANTITY + B/O QTY\n'+
+    '• LynCar: netUnit = Unit Price, netTotal = Amount(Net), qty = QUANTITY + B/O QTY\n'+
+    '• Alliage Unifiés: netUnit = "Unitaire Prix", netTotal = "Prolongé Montant", code = "Numéro de Pièce du Client"\n'+
+    '• Atlantis Pompe: netUnit = colonne "Prix net", netTotal = colonne "Total", qty = Qté + B/O\n'+
+    '• Amiflex Inc. (Midland): netUnit = "Prix Unitair", netTotal = "Étendu Prix", code = "ID Article", qty = colonne "Commandé"\n'+
+    '• BOW Plumbing / Wavin: netUnit = colonne "Prix Unitaire" (= Prix × (1-Esc%/100)), netTotal = colonne "Total", qty = "Qté Comm."\n'+
+    '• Canplas Industries: netUnit = Prix × Multiplicateur, netTotal = "Prix cumulatif", code = "Code de produit", qty = "Quantité commandée"\n'+
+    '• CB Supplies: netUnit = colonne "NET Price", netTotal = colonne "Extended", qty = "Qty Ordered"\n'+
+    '• CCTF Corporation: netUnit = Unit Price × Discount Multiplier (si présent), netTotal = colonne "Amount(Net)", code = colonne "Product", qty = "Order QTY"\n'+
+    '• Aalberts IPS Americas (Apollo/Shurjoint): netUnit = colonne "PRICE EACH", netTotal = colonne "CANADIAN FUNDS NET", qty = "QTY. ORDERED" (pas Available ni Backordered)\n'+
+    '• Dahl Valve: netUnit = colonne "Unit Price", netTotal = colonne "Ext. Price", qty = "Order Qty"\n'+
+    '• Équipements Bernard: netUnit = Prix réf. × (1 - Esc./100), netTotal = colonne "Total", code = "No item", qty = colonne "Comm."\n'+
+    '• Fairview Ltd.: netUnit = colonne "Price", netTotal = colonne "Total", code = "Stock Number", qty = "Quantity"\n'+
+    '• IPEX Inc.: netUnit = Prix × Multiplicateur, netTotal = "Prix cumulatif", code = "Code de produit", qty = "Quantité commandée"\n'+
+    '• Les Joints Étanches R.B. (Seals Online): netUnit = "Prix Unitaire / Unit price", netTotal = colonne "Montant / Amount", code = "Code", qty = colonne "Comm./Ord." (pas AV/BO)\n'+
+    '• Oatey SCS: netUnit = "Prix unitaire", netTotal = "Prix prolongé", code = "Numéro d\'article", qty = "Quantité"\n'+
+    '• One World Supply: netUnit = colonne "Prix", netTotal = colonne "Total", code = "No item", qty = colonne "Comm."\n'+
+    '• Taylor Walraven: netUnit = colonne "Unit Price", netTotal = colonne "Ext. Price", code = "Item Number", qty = "Quantity Ordered"\n'+
+    '• Westlake Pipe & Fittings / Westlake Canada: tableau avec colonnes ITEM / DESCRIPTION / MATERIAL CUSTOMER MATERIAL / QUANTITY / UNIT PRICE (CAD) / AMOUNT (CAD). code = colonne "MATERIAL CUSTOMER MATERIAL" SEULEMENT (ex: DL400-030, DH321-015, S121-532) — NE JAMAIS utiliser la colonne DESCRIPTION comme code (D2665DL, D2729, D3034BE sont des codes internes Westlake à ignorer). netUnit = "Unit Price (CAD)", netTotal = "Amount (CAD)", qty = "Quantity"\n'+
+    '• Watts: netUnit = colonne "Price", netTotal = colonne "Extended Price", code = colonne "Item", qty = "QTY Open"\n'+
+    '• Boshart Industries (Packing Slip): PAS de prix — si le document est un Packing Slip sans colonne de prix, retourner items=[]\n'+
+    '• Zurn: netUnit = colonne NET PRICE, qty = QTY ORDERED\n'+
+    '• Goulds Pumps: attention — prix souvent en USD, forcer currency="USD"\n\n'+
+    'RÈGLES GÉNÉRALES:\n'+
+    '- qty = quantité commandée TOTALE (inclure back-order si présent)\n'+
+    '- netUnit = prix UNITAIRE net final (après escompte/multiplicateur)\n'+
+    '- netTotal = prix total de la ligne\n'+
+    '- code = code article du fournisseur (pas le code SAP)\n'+
+    '- Si devise USD détectée: currency="USD"\n'+
+    '- hasMore=true si tronqué (gros PDF), false si tout extrait\n\n'+
+    'Retourne JSON uniquement:\n'+
+    '{"supplier":"NomFournisseur","orderNum":"NUM_CONF","poNum":"9006XXX","currency":"CAD","items":[{"lineNbr":1,"code":"ABC123","qty":5,"netUnit":10.5800,"netTotal":52.90}],"hasMore":false}';
 
   callProxy({model:'claude-sonnet-4-5',max_tokens:16000,messages:[{role:'user',content:[
     {type:'document',source:{type:'base64',media_type:'application/pdf',data:b64}},
