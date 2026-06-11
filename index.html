@@ -67,7 +67,7 @@ td.mo{font-family:'Courier New',monospace;font-size:.68rem}td.ri{text-align:righ
 <body>
 <header>
   <h1>Vérification de Commande Fournisseur</h1>
-  <span>PDF + SAP → comparaison automatique par IA — Gromec Inc. &nbsp;|&nbsp; v2.2</span>
+  <span>PDF + SAP → comparaison automatique par IA — Gromec Inc. &nbsp;|&nbsp; v2.3</span>
 </header>
 
 <div class="layout">
@@ -271,6 +271,7 @@ function extractPDF(b64,fname,callNum,startAfter,accumulated){
     '• Taylor Walraven: netUnit = colonne "Unit Price", netTotal = colonne "Ext. Price", code = "Item Number", qty = "Quantity Ordered"\n'+
     '• Westlake Pipe & Fittings / Westlake Canada: tableau avec colonnes ITEM / DESCRIPTION / MATERIAL CUSTOMER MATERIAL / QUANTITY / UNIT PRICE (CAD) / AMOUNT (CAD). code = colonne "MATERIAL CUSTOMER MATERIAL" SEULEMENT (ex: DL400-030, DH321-015, S121-532) — NE JAMAIS utiliser la colonne DESCRIPTION comme code (D2665DL, D2729, D3034BE sont des codes internes Westlake à ignorer). netUnit = "Unit Price (CAD)", netTotal = "Amount (CAD)", qty = "Quantity"\n'+
     '• Watts: netUnit = colonne "Price", netTotal = colonne "Extended Price", code = colonne "Item", qty = "QTY Open"\n'+
+    '• Boshart Industries (Order Confirmation): code = colonne "Item Number/Customer PN", qty = colonne "Quantity" SEULEMENT — NE PAS ajouter Backorder Qty (le backorder est une sous-partie déjà incluse dans Quantity, pas un ajout), netUnit = colonne "Net Price" (après escompte, ex: $0.60), netTotal = colonne "Amount", devise = CAD\n'+
     '• Boshart Industries (Packing Slip): PAS de prix — si le document est un Packing Slip sans colonne de prix, retourner items=[]\n'+
     '• Zurn: netUnit = colonne NET PRICE, qty = QTY ORDERED\n'+
     '• Goulds Pumps: attention — prix souvent en USD, forcer currency="USD"\n\n'+
