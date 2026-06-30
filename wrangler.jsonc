@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "gromec-verification",
+  "name": "gromec-verification-pt",
   "compatibility_date": "2026-05-25",
   "observability": {
     "enabled": true
