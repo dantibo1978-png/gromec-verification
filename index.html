@@ -220,13 +220,13 @@ function generateVendorEmail(nom, prenom) {
 }
 
 function buildEmailBody(vendor, rows) {
-  const lines = [`Bonjour ${vendor},`, '', 'Voici la liste des items restants à vérifier :', ''];
+  const greeting = rows.length > 1 ? 'Salut, PTs non commandés' : 'Salut, PT non commandé';
+  const lines = [`${greeting}`, ''];
   rows.forEach(row => {
     lines.push(
-      `- ${row["Numéro d'article"]} | ${row['Description article/service']} | Doc ${row['Numéro de document']} (${row["Date d'enregistrement"]}) | Disponible: ${row['Disponible']}`
+      `- ${row["Numéro d'article"]} | ${row['Description article/service']} | Commande ${row['Numéro de document']}`
     );
   });
-  lines.push('', 'Merci,', 'Gromec');
   return lines.join('\n');
 }
 
