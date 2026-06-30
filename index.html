@@ -220,7 +220,7 @@ function generateVendorEmail(nom, prenom) {
 }
 
 function buildEmailBody(vendor, rows) {
-  const greeting = rows.length > 1 ? 'Salut, PTs non commandés' : 'Salut, PT non commandé';
+  const greeting = rows.length > 1 ? 'Salut, PT non commandés' : 'Salut, PT non commandé';
   const lines = [`${greeting}`, ''];
   rows.forEach(row => {
     lines.push(
