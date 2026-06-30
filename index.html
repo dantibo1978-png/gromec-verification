@@ -118,7 +118,8 @@
     text-align: left;
   }
   table.results th { background: #f9fafb; }
-  .vendor-row td:nth-child(2) { text-align: right; }
+  .vendor-row td:nth-child(3) { text-align: right; }
+  .vendor-row button { padding: 5px 10px; font-size: 0.8rem; }
   .error { color: var(--warn); font-weight: 600; margin-top: 8px; }
   .ok { color: var(--ok); }
   details summary { cursor: pointer; font-weight: 600; margin-top: 10px; }
@@ -158,7 +159,7 @@
       <div class="stat">Vendeurs concernés<b id="statVendors">0</b></div>
     </div>
     <table class="results" id="vendorTable">
-      <thead><tr><th>Vendeur</th><th>Lignes restantes</th></tr></thead>
+      <thead><tr><th>Vendeur</th><th>Email</th><th>Lignes restantes</th><th></th></tr></thead>
       <tbody></tbody>
     </table>
     <details>
@@ -202,6 +203,37 @@ function buildTable1Rows(parsed) {
     row.__vendor = `${row['Nom']} ${row['Prénom']}`.trim();
     return row;
   }).filter(r => r["Numéro d'article"]);
+}
+
+function stripAccents(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function generateVendorEmail(nom, prenom) {
+  const initials = stripAccents(prenom || '')
+    .split(/[\s-]+/)
+    .filter(Boolean)
+    .map(p => p[0].toLowerCase())
+    .join('');
+  const lastName = stripAccents(nom || '').replace(/[\s-]+/g, '').toLowerCase();
+  return `${initials}${lastName}@gromec.com`;
+}
+
+function buildEmailBody(vendor, rows) {
+  const lines = [`Bonjour ${vendor},`, '', 'Voici la liste des items restants à vérifier :', ''];
+  rows.forEach(row => {
+    lines.push(
+      `- ${row["Numéro d'article"]} | ${row['Description article/service']} | Doc ${row['Numéro de document']} (${row["Date d'enregistrement"]}) | Disponible: ${row['Disponible']}`
+    );
+  });
+  lines.push('', 'Merci,', 'Gromec');
+  return lines.join('\n');
+}
+
+function buildMailtoLink(vendor, email, rows) {
+  const subject = encodeURIComponent(`Liste des items à vérifier - ${vendor}`);
+  const body = encodeURIComponent(buildEmailBody(vendor, rows));
+  return `mailto:${encodeURIComponent(email)}?subject=${subject}&body=${body}`;
 }
 
 function buildPurchasedArticleSet(parsed) {
@@ -263,9 +295,17 @@ document.getElementById('processBtn').addEventListener('click', () => {
   const vendorBody = document.querySelector('#vendorTable tbody');
   vendorBody.innerHTML = '';
   [...byVendor.entries()].sort((a, b) => a[0].localeCompare(b[0])).forEach(([vendor, rows]) => {
+    const firstRow = rows[0];
+    const email = generateVendorEmail(firstRow['Nom'], firstRow['Prénom']);
     const tr = document.createElement('tr');
     tr.className = 'vendor-row';
-    tr.innerHTML = `<td>${vendor}</td><td>${rows.length}</td>`;
+    tr.innerHTML = `<td>${vendor}</td><td>${email}</td><td>${rows.length}</td><td></td>`;
+    const btn = document.createElement('button');
+    btn.textContent = 'Ouvrir dans Outlook';
+    btn.addEventListener('click', () => {
+      window.location.href = buildMailtoLink(vendor, email, rows);
+    });
+    tr.lastElementChild.appendChild(btn);
     vendorBody.appendChild(tr);
   });
 
