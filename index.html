@@ -49,6 +49,7 @@
     padding: 16px;
   }
   .card h2 { margin-top: 0; font-size: 1.05rem; }
+  .card h2 .subtitle { font-size: 0.8rem; font-weight: 400; color: #6b7280; margin-left: 8px; }
   .card p.hint { color: #6b7280; font-size: 0.85rem; margin-top: -6px; }
   textarea {
     width: 100%;
@@ -120,6 +121,8 @@
   table.results th { background: #f9fafb; }
   .vendor-row td:nth-child(3) { text-align: right; }
   .vendor-row button { padding: 5px 10px; font-size: 0.8rem; }
+  .vendor-row button.sent { background: var(--ok); }
+  .vendor-row button.sent:hover { background: #15803d; }
   .error { color: var(--warn); font-weight: 600; margin-top: 8px; }
   .ok { color: var(--ok); }
   details summary { cursor: pointer; font-weight: 600; margin-top: 10px; }
@@ -133,7 +136,7 @@
 <main>
   <div class="grid">
     <div class="card">
-      <h2>1. Tableau SAP</h2>
+      <h2>1. Tableau SAP <span class="subtitle">Requete P05/liste des ventes PT</span></h2>
       <p class="hint">Colle ici les données copiées d'Excel (avec l'en-tête : Nom, Prénom, Numéro de document, Date d'enregistrement, Numéro d'article, Description article/service, B/O, En magasin, Total réservé, En P/O, Disponible).</p>
       <textarea id="table1" placeholder="Colle le tableau SAP ici..."></textarea>
     </div>
@@ -304,6 +307,8 @@ document.getElementById('processBtn').addEventListener('click', () => {
     btn.textContent = 'Ouvrir dans Outlook';
     btn.addEventListener('click', () => {
       window.location.href = buildMailtoLink(vendor, email, rows);
+      btn.classList.add('sent');
+      btn.textContent = 'Envoyé ✓';
     });
     tr.lastElementChild.appendChild(btn);
     vendorBody.appendChild(tr);
