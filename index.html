@@ -222,18 +222,6 @@ function generateVendorEmail(nom, prenom) {
   return `${initials}${lastName}@gromec.com`;
 }
 
-const SIGNATURE = [
-  '',
-  '',
-  'Daniel Thibault',
-  'Acheteur / buyer',
-  '418-549-5962 ext. 2022',
-  '581-490-2521',
-  'dthibault@gromec.com',
-  'www.gromec.com',
-  '1911 rue Outardes, Chicoutimi, QC G7K 1C3'
-];
-
 function buildEmailBody(vendor, rows) {
   const greeting = rows.length > 1 ? 'Salut, PT non commandés' : 'Salut, PT non commandé';
   const lines = [`${greeting}`, ''];
@@ -242,7 +230,6 @@ function buildEmailBody(vendor, rows) {
       `- ${row["Numéro d'article"]} | ${row['Description article/service']} | Commande ${row['Numéro de document']}`
     );
   });
-  lines.push(...SIGNATURE);
   return lines.join('\n');
 }
 
