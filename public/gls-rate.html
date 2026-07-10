@@ -533,90 +533,64 @@ function getRate() {
   });
 }
 
+var ACCOUNT_LABELS = { NEG: 'Tarif négocié', GEN: 'Tarif général', VOL: 'Tarif volume' };
+var RATE_LABELS = { GRD: 'Terrestre', EXP: 'Express', PRI: 'Prioritaire' };
+var CHARGE_LABELS = {
+  basicCharge: 'Tarif de base', weightCharge: 'Supplément poids',
+  zoneCharge: 'Supplément zone', otherCharge: 'Autres frais',
+  cubicWeight: 'Poids volumétrique', subTotal: 'Sous-total'
+};
+var SURCHARGE_LABELS = {
+  'Fuel surcharge': 'Supplément carburant', 'Residential delivery': 'Livraison résidentielle',
+  'QFA': 'QFA (ajustement qualité)', 'Beyond area': 'Zone éloignée'
+};
+
 function showResult(data) {
-  var list = findRateArray(data);
-  if (!list || !list.length) {
-    el('result').innerHTML = '<div class="result-card"><h3>Réponse brute</h3><pre style="font-size:.75rem;white-space:pre-wrap;max-height:400px;overflow:auto">' + escHtml(JSON.stringify(data, null, 2)) + '</pre></div>';
-    return;
+  var list = Array.isArray(data) ? data : null;
+  if (!list) {
+    for (var k in data) { if (Array.isArray(data[k]) && data[k].length && typeof data[k][0] === 'object') { list = data[k]; break; } }
   }
+  if (!list) list = [data];
 
   var html = '';
-  var idx = 0;
   list.forEach(function(svc) {
-    idx++;
-    var name = findVal(svc, ['serviceDescription','serviceName','serviceCode','deliveryType','name','description','service']) || 'Option ' + idx;
-    var transit = findVal(svc, ['transitDays','estimatedDeliveryDays','transitTime','deliveryDays','estimatedTransitDays']);
-    var base = findVal(svc, ['baseCharge','baseRate','basePrice','freightCharge','charge']);
-    var fuel = findVal(svc, ['fuelSurcharge','fuelCharge','fuel']);
-    var total = findVal(svc, ['totalCharges','totalCharge','total','totalPrice','totalRate','grandTotal']);
-    var currency = findVal(svc, ['currency','currencyCode']) || 'CAD';
-
-    var surcharges = findVal(svc, ['surcharges','accessorials','charges','fees']);
-    var taxes = findVal(svc, ['taxes','tax']);
+    var acct = svc.accountType || '';
+    var rate = svc.rateType || '';
+    var title = (ACCOUNT_LABELS[acct] || acct || 'Tarif') + ' — ' + (RATE_LABELS[rate] || rate || 'GRD');
+    var total = svc.totalCharge || svc.total || svc.totalCharges || 0;
+    var transit = svc.transitDays || svc.estimatedDeliveryDays || '';
 
     html += '<div class="result-card">';
-    html += '<h3>' + escHtml(String(name)) + (transit ? ' — ' + transit + ' jour(s)' : '') + '</h3>';
+    html += '<h3>' + escHtml(title) + (transit ? ' <span style="font-weight:normal;font-size:.8rem">(' + transit + ' jour(s))</span>' : '') + '</h3>';
 
-    if (base != null) html += '<div class="result-line"><span class="lbl">Tarif de base</span><span>' + fmt(base) + ' ' + currency + '</span></div>';
-    if (fuel != null) html += '<div class="result-line"><span class="lbl">Supplément carburant</span><span>' + fmt(fuel) + ' ' + currency + '</span></div>';
+    if (svc.basicCharge) html += line('Tarif de base', svc.basicCharge);
+    if (svc.weightCharge) html += line('Supplément poids', svc.weightCharge);
+    if (svc.zoneCharge) html += line('Supplément zone', svc.zoneCharge);
+    if (svc.otherCharge) html += line('Autres frais', svc.otherCharge);
+    if (svc.subTotal) html += line('Sous-total', svc.subTotal, true);
 
-    if (Array.isArray(surcharges)) {
+    var surcharges = svc.surcharges || svc.accessorials || svc.charges || [];
+    if (Array.isArray(surcharges) && surcharges.length) {
+      html += '<div style="border-top:1px solid rgba(26,107,58,.2);margin:.4rem 0;padding-top:.3rem;font-size:.7rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em">Surcharges</div>';
       surcharges.forEach(function(s) {
-        var sName = s.description || s.name || s.code || s.type || 'Surcharge';
-        var sAmt = s.amount || s.charge || s.value || 0;
-        html += '<div class="result-line"><span class="lbl">' + escHtml(String(sName)) + '</span><span>' + fmt(sAmt) + ' ' + currency + '</span></div>';
-      });
-    }
-    if (Array.isArray(taxes)) {
-      taxes.forEach(function(t) {
-        var tName = t.description || t.name || t.code || t.type || 'Taxe';
-        var tAmt = t.amount || t.charge || t.value || 0;
-        html += '<div class="result-line"><span class="lbl">' + escHtml(String(tName)) + '</span><span>' + fmt(tAmt) + ' ' + currency + '</span></div>';
+        var nm = s.description || s.name || s.code || 'Surcharge';
+        nm = SURCHARGE_LABELS[nm] || nm;
+        html += line(nm, s.amount || s.charge || s.value || 0);
       });
     }
 
-    if (total != null) html += '<div class="result-line"><span class="lbl">Total</span><span>' + fmt(total) + ' ' + currency + '</span></div>';
+    if (svc.cubicWeight) html += '<div class="result-line" style="color:var(--mut);font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>' + fmt(svc.cubicWeight) + ' lb</span></div>';
 
-    // Show all other numeric fields we didn't catch
-    var shown = ['serviceDescription','serviceName','serviceCode','deliveryType','name','description','service',
-      'transitDays','estimatedDeliveryDays','transitTime','deliveryDays','estimatedTransitDays',
-      'baseCharge','baseRate','basePrice','freightCharge','charge',
-      'fuelSurcharge','fuelCharge','fuel',
-      'totalCharges','totalCharge','total','totalPrice','totalRate','grandTotal',
-      'currency','currencyCode','surcharges','accessorials','charges','fees','taxes','tax'];
-    Object.keys(svc).forEach(function(k) {
-      if (shown.indexOf(k) >= 0) return;
-      var v = svc[k];
-      if (typeof v === 'number') {
-        html += '<div class="result-line"><span class="lbl">' + escHtml(k) + '</span><span>' + fmt(v) + ' ' + currency + '</span></div>';
-      } else if (typeof v === 'string' && v) {
-        html += '<div class="result-line"><span class="lbl">' + escHtml(k) + '</span><span>' + escHtml(v) + '</span></div>';
-      }
-    });
-
+    html += '<div class="result-line" style="border-top:2px solid var(--ok);margin-top:.4rem;padding-top:.5rem"><span class="lbl" style="font-weight:bold;font-size:.9rem">Total</span><span style="font-weight:bold;font-size:1.1rem">' + fmt(total) + ' CAD</span></div>';
     html += '</div>';
   });
 
   el('result').innerHTML = html;
 }
 
-function findRateArray(data) {
-  if (Array.isArray(data)) return data;
-  var keys = ['rates','services','quotes','options','results','rateQuotes','serviceOptions'];
-  for (var i = 0; i < keys.length; i++) {
-    if (Array.isArray(data[keys[i]])) return data[keys[i]];
-  }
-  for (var k in data) {
-    if (Array.isArray(data[k]) && data[k].length > 0 && typeof data[k][0] === 'object') return data[k];
-  }
-  return [data];
-}
-
-function findVal(obj, keys) {
-  for (var i = 0; i < keys.length; i++) {
-    if (obj[keys[i]] != null) return obj[keys[i]];
-  }
-  return null;
+function line(label, amount, subtle) {
+  var style = subtle ? ' style="font-weight:600"' : '';
+  return '<div class="result-line"' + style + '><span class="lbl">' + escHtml(label) + '</span><span>' + fmt(amount) + ' CAD</span></div>';
 }
 
 function showError(msg) {
