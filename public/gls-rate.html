@@ -74,6 +74,11 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
           <div class="help">Le proxy CORS est intégré — aucune configuration requise.</div>
         </div>
         <div>
+          <label>Catégorie d'envoi</label>
+          <select id="category">
+            <option value="Parcel">Colis (Parcel)</option>
+            <option value="Freight">Fret (Freight)</option>
+          </select>
         </div>
       </div>
       <div class="row">
@@ -357,6 +362,7 @@ function getRate() {
   if (pkgs.length === 0) { showError('Ajoutez au moins un colis.'); return; }
 
   var body = {
+    category: el('category').value,
     from: {
       address: {
         postalCode: fromPostal,
