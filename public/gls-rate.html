@@ -81,6 +81,30 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
           </select>
         </div>
       </div>
+      <div class="row3">
+        <div>
+          <label>Type de paiement</label>
+          <select id="payment-type">
+            <option value="Prepaid">Prépayé (Prepaid)</option>
+            <option value="ThirdParty">Tiers (Third Party)</option>
+            <option value="Collect">À percevoir (Collect)</option>
+          </select>
+        </div>
+        <div>
+          <label>Type de livraison</label>
+          <select id="delivery-type">
+            <option value="Commercial">Commercial</option>
+            <option value="Residential">Résidentiel</option>
+          </select>
+        </div>
+        <div>
+          <label>Unité de mesure</label>
+          <select id="unit">
+            <option value="Imperial">Impérial (lb / po)</option>
+            <option value="Metric">Métrique (kg / cm)</option>
+          </select>
+        </div>
+      </div>
       <div class="row">
         <div>
           <label>Nom d'utilisateur API</label>
@@ -362,33 +386,29 @@ function getRate() {
   if (pkgs.length === 0) { showError('Ajoutez au moins un colis.'); return; }
 
   var body = {
-    category: el('category').value,
-    from: {
-      address: {
-        postalCode: fromPostal,
-        provinceCode: el('from-prov').value,
-        countryCode: 'CA',
-        city: el('from-city').value.trim() || undefined
-      }
+    Category: el('category').value,
+    PaymentType: el('payment-type').value,
+    DeliveryType: el('delivery-type').value,
+    UnitOfMeasurement: el('unit').value,
+    Sender: {
+      PostalCode: fromPostal,
+      ProvinceCode: el('from-prov').value,
+      CountryCode: 'CA',
+      City: el('from-city').value.trim() || undefined
     },
-    to: {
-      address: {
-        postalCode: toPostal,
-        provinceCode: el('to-prov').value,
-        countryCode: 'CA',
-        city: el('to-city').value.trim() || undefined
-      }
+    Consignee: {
+      PostalCode: toPostal,
+      ProvinceCode: el('to-prov').value,
+      CountryCode: 'CA',
+      City: el('to-city').value.trim() || undefined
     },
-    packages: pkgs.map(function(p) {
+    Parcels: pkgs.map(function(p) {
       return {
-        description: p.description,
-        weight: { value: p.weight, dimensionUnit: 'LB' },
-        dimension: {
-          length: p.length,
-          width: p.width,
-          height: p.height,
-          dimensionUnit: 'IN'
-        }
+        Description: p.description,
+        Weight: p.weight,
+        Length: p.length,
+        Width: p.width,
+        Height: p.height
       };
     })
   };
