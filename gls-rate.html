@@ -103,8 +103,28 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
         <div>
           <h4 style="font-size:.82rem;margin-bottom:.6rem;color:var(--acc)">Expéditeur</h4>
           <div class="full">
+            <label>Ville rapide</label>
+            <select id="from-quick" onchange="fillAddr('from')">
+              <option value="">— Choisir ou taper manuellement —</option>
+              <optgroup label="Québec">
+                <option value="H2X 1Y4|QC|Montréal">Montréal — H2X 1Y4</option>
+                <option value="G1R 1A1|QC|Québec">Québec — G1R 1A1</option>
+                <option value="J1H 1A1|QC|Sherbrooke">Sherbrooke — J1H 1A1</option>
+                <option value="J6W 1A1|QC|Laval">Laval — J6W 1A1</option>
+                <option value="J8Y 1A1|QC|Gatineau">Gatineau — J8Y 1A1</option>
+              </optgroup>
+              <optgroup label="Ontario">
+                <option value="M5V 2T6|ON|Toronto">Toronto — M5V 2T6</option>
+                <option value="K1A 0A6|ON|Ottawa">Ottawa — K1A 0A6</option>
+                <option value="L5B 1E4|ON|Mississauga">Mississauga — L5B 1E4</option>
+                <option value="L8P 1A1|ON|Hamilton">Hamilton — L8P 1A1</option>
+                <option value="N6A 1A1|ON|London">London — N6A 1A1</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="full">
             <label>Code postal</label>
-            <input type="text" id="from-postal" placeholder="H1A 1A1" maxlength="7">
+            <input type="text" id="from-postal" placeholder="H2X 1Y4" maxlength="7">
           </div>
           <div class="full">
             <label>Province</label>
@@ -131,6 +151,26 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
         </div>
         <div>
           <h4 style="font-size:.82rem;margin-bottom:.6rem;color:var(--acc)">Destinataire</h4>
+          <div class="full">
+            <label>Ville rapide</label>
+            <select id="to-quick" onchange="fillAddr('to')">
+              <option value="">— Choisir ou taper manuellement —</option>
+              <optgroup label="Québec">
+                <option value="H2X 1Y4|QC|Montréal">Montréal — H2X 1Y4</option>
+                <option value="G1R 1A1|QC|Québec">Québec — G1R 1A1</option>
+                <option value="J1H 1A1|QC|Sherbrooke">Sherbrooke — J1H 1A1</option>
+                <option value="J6W 1A1|QC|Laval">Laval — J6W 1A1</option>
+                <option value="J8Y 1A1|QC|Gatineau">Gatineau — J8Y 1A1</option>
+              </optgroup>
+              <optgroup label="Ontario">
+                <option value="M5V 2T6|ON|Toronto">Toronto — M5V 2T6</option>
+                <option value="K1A 0A6|ON|Ottawa">Ottawa — K1A 0A6</option>
+                <option value="L5B 1E4|ON|Mississauga">Mississauga — L5B 1E4</option>
+                <option value="L8P 1A1|ON|Hamilton">Hamilton — L8P 1A1</option>
+                <option value="N6A 1A1|ON|London">London — N6A 1A1</option>
+              </optgroup>
+            </select>
+          </div>
           <div class="full">
             <label>Code postal</label>
             <input type="text" id="to-postal" placeholder="M5V 2T6" maxlength="7">
@@ -216,6 +256,16 @@ function log(msg) {
 
 function toggleLog() {
   el('log-panel').classList.toggle('show', el('dbg').checked);
+}
+
+// ── VILLE RAPIDE ──
+function fillAddr(prefix) {
+  var val = el(prefix + '-quick').value;
+  if (!val) return;
+  var parts = val.split('|');
+  el(prefix + '-postal').value = parts[0];
+  el(prefix + '-prov').value = parts[1];
+  el(prefix + '-city').value = parts[2];
 }
 
 // ── CONFIG PERSISTANCE ──
