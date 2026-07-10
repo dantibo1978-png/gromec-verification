@@ -175,7 +175,7 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
                 <option value="J2S 1A1|QC|Drummondville">Drummondville — J2S 1A1</option>
                 <option value="G1E 1A1|QC|Beauport">Beauport — G1E 1A1</option>
                 <option value="J3T 1A1|QC|Saint-Hubert">Saint-Hubert — J3T 1A1</option>
-                <option value="G7H 1A1|QC|Chicoutimi">Chicoutimi — G7H 1A1</option>
+                <option value="G7K 1C3|QC|Chicoutimi">Chicoutimi — G7K 1C3</option>
                 <option value="G5C 1A1|QC|Baie-Comeau">Baie-Comeau — G5C 1A1</option>
                 <option value="G8P 1A1|QC|Chibougamau">Chibougamau — G8P 1A1</option>
                 <option value="J9P 1A1|QC|Val-d'Or">Val-d'Or — J9P 1A1</option>
@@ -242,7 +242,7 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
                 <option value="J2S 1A1|QC|Drummondville">Drummondville — J2S 1A1</option>
                 <option value="G1E 1A1|QC|Beauport">Beauport — G1E 1A1</option>
                 <option value="J3T 1A1|QC|Saint-Hubert">Saint-Hubert — J3T 1A1</option>
-                <option value="G7H 1A1|QC|Chicoutimi">Chicoutimi — G7H 1A1</option>
+                <option value="G7K 1C3|QC|Chicoutimi">Chicoutimi — G7K 1C3</option>
                 <option value="G5C 1A1|QC|Baie-Comeau">Baie-Comeau — G5C 1A1</option>
                 <option value="G8P 1A1|QC|Chibougamau">Chibougamau — G8P 1A1</option>
                 <option value="J9P 1A1|QC|Val-d'Or">Val-d'Or — J9P 1A1</option>
@@ -634,7 +634,7 @@ function closeModal() {
   el('modal').classList.remove('show');
 }
 
-var M=1.25;
+var M=(function(){var f=localStorage.getItem('gls-factor');return 1+(f!==null?parseFloat(f):25)/100;})();
 function line(label, amount, subtle) {
   var style = subtle ? ' style="font-weight:600"' : '';
   return '<div class="m-line"' + style + '><span class="lbl">' + escHtml(label) + '</span><span>' + fmt(amount*M) + ' CAD</span></div>';
@@ -668,6 +668,12 @@ function clearAll() {
 // ── INIT ──
 loadConfig();
 addPkg();
+if (!el('to-postal').value) {
+  el('to-postal').value = 'G7K 1C3';
+  el('to-prov').value = 'QC';
+  el('to-city').value = 'Chicoutimi';
+  el('to-quick').value = 'G7K 1C3|QC|Chicoutimi';
+}
 </script>
 </body>
 </html>

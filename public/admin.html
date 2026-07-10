@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Administration — GLS</title>
+<style>
+:root{--bg:#f5f4f0;--sur:#fff;--brd:#e2e0d8;--txt:#1a1a18;--mut:#6b6b64;--acc:#1a3a5c;--acl:#e8eef5;--ok:#1a6b3a;--okb:#e8f5ee;--er:#8b1a1a;--erb:#fdeaea}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--txt);min-height:100vh;display:flex;align-items:center;justify-content:center}
+.card{background:var(--sur);border:1px solid var(--brd);border-radius:8px;padding:2rem;max-width:380px;width:90%;box-shadow:0 2px 12px rgba(0,0,0,.08)}
+h2{font-size:1rem;color:var(--acc);margin-bottom:1.2rem;text-align:center}
+label{display:block;font-size:.78rem;color:var(--mut);margin-bottom:.25rem;font-weight:bold}
+input{width:100%;border:1px solid var(--brd);border-radius:4px;padding:.5rem .65rem;font-size:.85rem;font-family:Georgia,serif;background:var(--bg);color:var(--txt);margin-bottom:.8rem}
+input:focus{outline:2px solid var(--acc);border-color:transparent}
+.btn{background:var(--acc);color:#fff;border:none;padding:.6rem 1.5rem;border-radius:4px;font-size:.85rem;cursor:pointer;font-family:Georgia,serif;width:100%}
+.btn:hover{opacity:.85}
+.msg{text-align:center;font-size:.8rem;margin-top:.8rem;padding:.4rem;border-radius:4px}
+.msg.ok{background:var(--okb);color:var(--ok)}
+.msg.er{background:var(--erb);color:var(--er)}
+#settings{display:none}
+.current{background:var(--acl);padding:.6rem .8rem;border-radius:4px;font-size:.82rem;color:var(--acc);margin-bottom:1rem;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <!-- LOGIN -->
+  <div id="login">
+    <h2>Administration</h2>
+    <label>Mot de passe</label>
+    <input type="password" id="pwd" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')auth()">
+    <button class="btn" onclick="auth()">Connexion</button>
+    <div id="login-msg"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div id="settings">
+    <h2>Paramètres</h2>
+    <div class="current" id="current-val"></div>
+    <label>Facteur de majoration (%)</label>
+    <input type="number" id="factor" step="1" min="0" max="200" placeholder="25">
+    <div style="font-size:.72rem;color:var(--mut);margin-top:-.5rem;margin-bottom:.8rem">
+      Exemple : 25 = prix GLS + 25%
+    </div>
+    <button class="btn" onclick="save()">Sauvegarder</button>
+    <div id="save-msg"></div>
+  </div>
+</div>
+
+<script>
+var HASH = '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8';
+
+async function sha256(str) {
+  var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(function(b) { return b.toString(16).padStart(2, '0'); }).join('');
+}
+
+async function auth() {
+  var pwd = document.getElementById('pwd').value;
+  var hash = await sha256(pwd);
+  if (hash === HASH) {
+    document.getElementById('login').style.display = 'none';
+    document.getElementById('settings').style.display = 'block';
+    loadFactor();
+  } else {
+    document.getElementById('login-msg').className = 'msg er';
+    document.getElementById('login-msg').textContent = 'Mot de passe incorrect';
+  }
+}
+
+function loadFactor() {
+  var f = localStorage.getItem('gls-factor');
+  var pct = f !== null ? parseFloat(f) : 25;
+  document.getElementById('factor').value = pct;
+  document.getElementById('current-val').textContent = 'Facteur actuel : ' + pct + '% (× ' + (1 + pct / 100).toFixed(2) + ')';
+}
+
+function save() {
+  var pct = parseFloat(document.getElementById('factor').value);
+  if (isNaN(pct) || pct < 0) {
+    document.getElementById('save-msg').className = 'msg er';
+    document.getElementById('save-msg').textContent = 'Valeur invalide';
+    return;
+  }
+  localStorage.setItem('gls-factor', pct);
+  document.getElementById('save-msg').className = 'msg ok';
+  document.getElementById('save-msg').textContent = 'Sauvegardé — ' + pct + '%';
+  document.getElementById('current-val').textContent = 'Facteur actuel : ' + pct + '% (× ' + (1 + pct / 100).toFixed(2) + ')';
+  setTimeout(function() { document.getElementById('save-msg').textContent = ''; }, 3000);
+}
+</script>
+</body>
+</html>
