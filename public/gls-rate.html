@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotation Transport — GLS Canada</title>
+<style>
+:root{--bg:#f5f4f0;--sur:#fff;--brd:#e2e0d8;--txt:#1a1a18;--mut:#6b6b64;--acc:#1a3a5c;--acl:#e8eef5;--ok:#1a6b3a;--okb:#e8f5ee;--er:#8b1a1a;--erb:#fdeaea}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--txt);min-height:100vh}
+header{background:var(--acc);color:#fff;padding:1rem 2rem;display:flex;align-items:center;gap:1rem}
+header h1{font-size:1.1rem;font-weight:normal;flex:1}
+header span{font-size:.7rem;opacity:.5;font-family:monospace}
+.gear-btn{background:none;border:none;color:#fff;cursor:pointer;opacity:.6;transition:opacity .2s;padding:4px}
+.gear-btn:hover{opacity:1}
+.gear-btn svg{width:22px;height:22px;fill:currentColor}
+.layout{max-width:900px;margin:0 auto;padding:1.25rem 2rem;display:flex;flex-direction:column;gap:1.25rem}
+.panel{background:var(--sur);border:1px solid var(--brd);border-radius:6px;overflow:hidden}
+.phd{background:var(--acc);color:#fff;padding:.5rem 1rem;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
+.phd .tag{background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;font-size:.66rem}
+.pbd{padding:.9rem}
+label{display:block;font-size:.78rem;color:var(--mut);margin-bottom:.25rem;font-weight:bold;letter-spacing:.03em}
+input,select{width:100%;border:1px solid var(--brd);border-radius:4px;padding:.5rem .65rem;font-size:.82rem;font-family:Georgia,serif;background:var(--bg);color:var(--txt)}
+input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem}
+.full{margin-bottom:.8rem}
+.btn{background:var(--acc);color:#fff;border:none;padding:.6rem 1.5rem;border-radius:4px;font-size:.85rem;cursor:pointer;transition:opacity .15s;font-family:Georgia,serif}
+.btn:hover{opacity:.85}.btn:disabled{opacity:.32;cursor:not-allowed}
+.btn-s{background:transparent;color:var(--acc);border:1px solid var(--acc);padding:.45rem 1rem;font-size:.78rem}
+.help{font-size:.68rem;color:var(--mut);margin-top:.2rem}
+.pkg-row{display:grid;grid-template-columns:3fr 2fr 2fr 2fr auto;gap:.5rem;align-items:end;margin-bottom:.5rem}
+.pkg-row input{font-size:.78rem;padding:.4rem .5rem}
+.pkg-row button{background:var(--er);color:#fff;border:none;border-radius:4px;padding:.35rem .6rem;font-size:.75rem;cursor:pointer;height:fit-content}
+.pkg-row button:hover{opacity:.8}
+#log-panel{display:none}
+#log-panel.show{display:block}
+#log{font-family:'Courier New',monospace;font-size:.7rem;background:var(--bg);border:1px solid var(--brd);border-radius:4px;padding:.6rem;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--sur);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.25);max-width:500px;width:90%;max-height:85vh;overflow-y:auto;animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal-header{background:var(--acc);color:#fff;padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;border-radius:8px 8px 0 0}
+.modal-header h3{font-size:.9rem;font-weight:normal}
+.modal-close{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;padding:0 .3rem;opacity:.7}
+.modal-close:hover{opacity:1}
+.modal-body{padding:1.2rem}
+.m-route{text-align:center;padding-bottom:.8rem;border-bottom:1px solid var(--brd);margin-bottom:.8rem;font-size:.9rem;color:var(--acc)}
+.m-line{display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--brd);font-size:.84rem}
+.m-line .lbl{color:var(--mut)}
+.m-sep{border-top:1px solid var(--brd);margin:.5rem 0;padding-top:.4rem;font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.m-total{text-align:center;padding:1rem 0 .5rem;border-top:2px solid var(--ok);margin-top:.8rem}
+.m-total .price{font-size:2.2rem;font-weight:bold;color:var(--ok)}
+.m-total .lbl{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.cfg-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1001;align-items:center;justify-content:center}
+.cfg-overlay.show{display:flex}
+.cfg-modal{background:var(--sur);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.25);max-width:420px;width:92%;animation:modalIn .2s ease}
+.cfg-modal .modal-body{padding:1.2rem}
+.cfg-modal label{margin-top:.6rem}
+.cfg-modal label:first-child{margin-top:0}
+.cfg-modal input,.cfg-modal select{margin-bottom:.3rem}
+.cfg-msg{text-align:center;font-size:.8rem;margin-top:.8rem;padding:.4rem;border-radius:4px}
+.cfg-msg.ok{background:var(--okb);color:var(--ok)}
+.cfg-msg.er{background:var(--erb);color:var(--er)}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Cotation Transport — GLS Canada</h1>
+  <span>v2.0</span>
+  <button class="gear-btn" onclick="openCfg()" title="Paramètres">
+    <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1112 8.4a3.6 3.6 0 010 7.2z"/></svg>
+  </button>
+</header>
+
+<div class="layout">
+
+  <div class="panel">
+    <div class="phd">Adresses</div>
+    <div class="pbd">
+      <div class="row">
+        <div>
+          <h4 style="font-size:.82rem;margin-bottom:.6rem;color:var(--acc)">Expéditeur</h4>
+          <div class="full">
+            <label>Ville rapide</label>
+            <select id="from-quick" onchange="fillAddr('from')">
+              <option value="">— Choisir ou taper manuellement —</option>
+              <optgroup label="Québec">
+                <option value="H2X 1Y4|QC|Montréal">Montréal — H2X 1Y4</option>
+                <option value="G1R 1A1|QC|Québec">Québec — G1R 1A1</option>
+                <option value="J6W 1A1|QC|Laval">Laval — J6W 1A1</option>
+                <option value="J4G 1A1|QC|Longueuil">Longueuil — J4G 1A1</option>
+                <option value="J8Y 1A1|QC|Gatineau">Gatineau — J8Y 1A1</option>
+                <option value="J1H 1A1|QC|Sherbrooke">Sherbrooke — J1H 1A1</option>
+                <option value="J2S 1A1|QC|Drummondville">Drummondville — J2S 1A1</option>
+                <option value="G1E 1A1|QC|Beauport">Beauport — G1E 1A1</option>
+                <option value="J3T 1A1|QC|Saint-Hubert">Saint-Hubert — J3T 1A1</option>
+                <option value="G7K 1C3|QC|Chicoutimi">Chicoutimi — G7K 1C3</option>
+                <option value="G5C 1A1|QC|Baie-Comeau">Baie-Comeau — G5C 1A1</option>
+                <option value="G8P 1A1|QC|Chibougamau">Chibougamau — G8P 1A1</option>
+                <option value="J9P 1A1|QC|Val-d'Or">Val-d'Or — J9P 1A1</option>
+                <option value="J6E 1A1|QC|Saint-Jérôme">Saint-Jérôme — J6E 1A1</option>
+                <option value="G5R 1A1|QC|Rimouski">Rimouski — G5R 1A1</option>
+              </optgroup>
+              <optgroup label="Ontario">
+                <option value="M5V 2T6|ON|Toronto">Toronto — M5V 2T6</option>
+                <option value="K1A 0A6|ON|Ottawa">Ottawa — K1A 0A6</option>
+                <option value="L5B 1E4|ON|Mississauga">Mississauga — L5B 1E4</option>
+                <option value="L8P 1A1|ON|Hamilton">Hamilton — L8P 1A1</option>
+                <option value="N6A 1A1|ON|London">London — N6A 1A1</option>
+                <option value="L4B 1A1|ON|Markham">Markham — L4B 1A1</option>
+                <option value="L6Y 1A1|ON|Brampton">Brampton — L6Y 1A1</option>
+                <option value="N2G 1A1|ON|Kitchener">Kitchener — N2G 1A1</option>
+                <option value="L3R 1A1|ON|Scarborough">Scarborough — L3R 1A1</option>
+                <option value="P3E 1A1|ON|Sudbury">Sudbury — P3E 1A1</option>
+                <option value="N1H 1A1|ON|Guelph">Guelph — N1H 1A1</option>
+                <option value="P7A 1A1|ON|Thunder Bay">Thunder Bay — P7A 1A1</option>
+                <option value="N2L 1A1|ON|Waterloo">Waterloo — N2L 1A1</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="full"><label>Code postal</label><input type="text" id="from-postal" placeholder="H2X 1Y4" maxlength="7"></div>
+          <div class="full">
+            <label>Province</label>
+            <select id="from-prov">
+              <option value="QC">Québec</option><option value="ON">Ontario</option><option value="AB">Alberta</option><option value="BC">Colombie-Britannique</option><option value="MB">Manitoba</option><option value="SK">Saskatchewan</option><option value="NS">Nouvelle-Écosse</option><option value="NB">Nouveau-Brunswick</option><option value="NL">Terre-Neuve</option><option value="PE">Île-du-Prince-Édouard</option><option value="NT">Territoires du Nord-Ouest</option><option value="NU">Nunavut</option><option value="YT">Yukon</option>
+            </select>
+          </div>
+          <div class="full"><label>Ville</label><input type="text" id="from-city" placeholder="Montréal"></div>
+        </div>
+        <div>
+          <h4 style="font-size:.82rem;margin-bottom:.6rem;color:var(--acc)">Destinataire</h4>
+          <div class="full">
+            <label>Ville rapide</label>
+            <select id="to-quick" onchange="fillAddr('to')">
+              <option value="">— Choisir ou taper manuellement —</option>
+              <optgroup label="Québec">
+                <option value="H2X 1Y4|QC|Montréal">Montréal — H2X 1Y4</option>
+                <option value="G1R 1A1|QC|Québec">Québec — G1R 1A1</option>
+                <option value="J6W 1A1|QC|Laval">Laval — J6W 1A1</option>
+                <option value="J4G 1A1|QC|Longueuil">Longueuil — J4G 1A1</option>
+                <option value="J8Y 1A1|QC|Gatineau">Gatineau — J8Y 1A1</option>
+                <option value="J1H 1A1|QC|Sherbrooke">Sherbrooke — J1H 1A1</option>
+                <option value="J2S 1A1|QC|Drummondville">Drummondville — J2S 1A1</option>
+                <option value="G1E 1A1|QC|Beauport">Beauport — G1E 1A1</option>
+                <option value="J3T 1A1|QC|Saint-Hubert">Saint-Hubert — J3T 1A1</option>
+                <option value="G7K 1C3|QC|Chicoutimi">Chicoutimi — G7K 1C3</option>
+                <option value="G5C 1A1|QC|Baie-Comeau">Baie-Comeau — G5C 1A1</option>
+                <option value="G8P 1A1|QC|Chibougamau">Chibougamau — G8P 1A1</option>
+                <option value="J9P 1A1|QC|Val-d'Or">Val-d'Or — J9P 1A1</option>
+                <option value="J6E 1A1|QC|Saint-Jérôme">Saint-Jérôme — J6E 1A1</option>
+                <option value="G5R 1A1|QC|Rimouski">Rimouski — G5R 1A1</option>
+              </optgroup>
+              <optgroup label="Ontario">
+                <option value="M5V 2T6|ON|Toronto">Toronto — M5V 2T6</option>
+                <option value="K1A 0A6|ON|Ottawa">Ottawa — K1A 0A6</option>
+                <option value="L5B 1E4|ON|Mississauga">Mississauga — L5B 1E4</option>
+                <option value="L8P 1A1|ON|Hamilton">Hamilton — L8P 1A1</option>
+                <option value="N6A 1A1|ON|London">London — N6A 1A1</option>
+                <option value="L4B 1A1|ON|Markham">Markham — L4B 1A1</option>
+                <option value="L6Y 1A1|ON|Brampton">Brampton — L6Y 1A1</option>
+                <option value="N2G 1A1|ON|Kitchener">Kitchener — N2G 1A1</option>
+                <option value="L3R 1A1|ON|Scarborough">Scarborough — L3R 1A1</option>
+                <option value="P3E 1A1|ON|Sudbury">Sudbury — P3E 1A1</option>
+                <option value="N1H 1A1|ON|Guelph">Guelph — N1H 1A1</option>
+                <option value="P7A 1A1|ON|Thunder Bay">Thunder Bay — P7A 1A1</option>
+                <option value="N2L 1A1|ON|Waterloo">Waterloo — N2L 1A1</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="full"><label>Code postal</label><input type="text" id="to-postal" placeholder="G7K 1C3" maxlength="7"></div>
+          <div class="full">
+            <label>Province</label>
+            <select id="to-prov">
+              <option value="QC">Québec</option><option value="ON">Ontario</option><option value="AB">Alberta</option><option value="BC">Colombie-Britannique</option><option value="MB">Manitoba</option><option value="SK">Saskatchewan</option><option value="NS">Nouvelle-Écosse</option><option value="NB">Nouveau-Brunswick</option><option value="NL">Terre-Neuve</option><option value="PE">Île-du-Prince-Édouard</option><option value="NT">Territoires du Nord-Ouest</option><option value="NU">Nunavut</option><option value="YT">Yukon</option>
+            </select>
+          </div>
+          <div class="full"><label>Ville</label><input type="text" id="to-city" placeholder="Chicoutimi"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="phd">Colis <span class="tag" id="pkg-count">1 colis</span></div>
+    <div class="pbd">
+      <div style="margin-bottom:.4rem">
+        <div class="pkg-row" style="font-size:.68rem;color:var(--mut);font-weight:bold">
+          <span>Description</span><span>Poids (lb)</span><span>L x W x H (po)</span><span></span><span></span>
+        </div>
+      </div>
+      <div id="pkg-list"></div>
+      <button class="btn-s btn" onclick="addPkg()" style="margin-top:.3rem;font-size:.75rem">+ Ajouter un colis</button>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap">
+    <button class="btn" id="btn-go" onclick="getRate()">Obtenir le tarif</button>
+    <button class="btn btn-s" onclick="clearAll()">Effacer</button>
+    <label style="font-size:.75rem;color:var(--mut);display:flex;align-items:center;gap:.3rem;cursor:pointer;margin-bottom:0">
+      <input type="checkbox" id="dbg" onchange="toggleLog()"> Afficher le journal
+    </label>
+  </div>
+
+  <div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-header"><h3>Cotation GLS</h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <div class="cfg-overlay" id="cfg-overlay" onclick="if(event.target===this)closeCfg()">
+    <div class="cfg-modal">
+      <div class="modal-header"><h3>Paramètres</h3><button class="modal-close" onclick="closeCfg()">&times;</button></div>
+      <div id="cfg-login" class="modal-body">
+        <label>Mot de passe administrateur</label>
+        <input type="password" id="cfg-pwd" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')cfgAuth()">
+        <button class="btn" onclick="cfgAuth()" style="width:100%;margin-top:.5rem">Connexion</button>
+        <div id="cfg-login-msg"></div>
+      </div>
+      <div id="cfg-form" class="modal-body" style="display:none">
+        <label>Nom d'utilisateur API</label>
+        <input type="text" id="cfg-user" placeholder="votre_utilisateur">
+        <label>Mot de passe API</label>
+        <input type="password" id="cfg-pass" placeholder="votre_mot_de_passe">
+        <label>Numéro de compte (billing)</label>
+        <input type="text" id="cfg-billing" placeholder="Votre # de compte GLS">
+        <label>Environnement GLS</label>
+        <select id="cfg-env">
+          <option value="https://sandbox-smart4i.gls-canada.com">Sandbox (test)</option>
+          <option value="https://smart4i.gls-canada.com">Production</option>
+        </select>
+        <label>Facteur de majoration (%)</label>
+        <input type="number" id="cfg-factor" step="1" min="0" max="200" placeholder="25">
+        <div class="help" style="margin-top:.1rem;margin-bottom:.5rem">Exemple : 25 = prix GLS + 25%</div>
+        <button class="btn" onclick="cfgSave()" style="width:100%">Sauvegarder</button>
+        <div id="cfg-save-msg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="log-panel">
+    <div class="phd">Journal</div>
+    <div class="pbd"><div id="log"></div></div>
+  </div>
+</div>
+
+<script>
+var pkgId=0,M=1.25,CFG_HASH='5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8',cfgPass='';
+function el(id){return document.getElementById(id)}
+function log(msg){var d=el('log'),ts=new Date().toLocaleTimeString('fr-CA');d.textContent+='['+ts+'] '+msg+'\n';d.scrollTop=d.scrollHeight}
+function toggleLog(){el('log-panel').classList.toggle('show',el('dbg').checked)}
+function fillAddr(p){var v=el(p+'-quick').value;if(!v)return;var a=v.split('|');el(p+'-postal').value=a[0];el(p+'-prov').value=a[1];el(p+'-city').value=a[2]}
+async function sha256(s){var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('')}
+function openCfg(){el('cfg-overlay').classList.add('show');el('cfg-login').style.display='block';el('cfg-form').style.display='none';el('cfg-pwd').value='';el('cfg-login-msg').textContent='';setTimeout(function(){el('cfg-pwd').focus()},100)}
+function closeCfg(){el('cfg-overlay').classList.remove('show')}
+async function cfgAuth(){var h=await sha256(el('cfg-pwd').value);if(h!==CFG_HASH){el('cfg-login-msg').className='cfg-msg er';el('cfg-login-msg').textContent='Mot de passe incorrect';return}cfgPass=el('cfg-pwd').value;el('cfg-login').style.display='none';el('cfg-form').style.display='block';cfgLoad()}
+function cfgLoad(){fetch('/api/settings',{headers:{'X-Admin-Pass':cfgPass}}).then(function(r){return r.json()}).then(function(d){el('cfg-user').value=d.apiUser||'';el('cfg-pass').value=d.apiPass||'';el('cfg-billing').value=d.billing||'';el('cfg-env').value=d.env||'https://sandbox-smart4i.gls-canada.com';el('cfg-factor').value=d.factor!=null?d.factor:25}).catch(function(){})}
+function cfgSave(){var d={apiUser:el('cfg-user').value.trim(),apiPass:el('cfg-pass').value.trim(),billing:el('cfg-billing').value.trim(),env:el('cfg-env').value,factor:parseFloat(el('cfg-factor').value)||25};fetch('/api/settings',{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Pass':cfgPass},body:JSON.stringify(d)}).then(function(r){if(!r.ok)throw new Error('Erreur '+r.status);el('cfg-save-msg').className='cfg-msg ok';el('cfg-save-msg').textContent='Sauvegardé';M=1+(d.factor/100);setTimeout(function(){el('cfg-save-msg').textContent=''},3000)}).catch(function(e){el('cfg-save-msg').className='cfg-msg er';el('cfg-save-msg').textContent=e.message})}
+function addPkg(desc,weight,l,w,h){pkgId++;var id=pkgId,div=document.createElement('div');div.className='pkg-row';div.id='pkg-'+id;div.innerHTML='<input type="text" placeholder="Colis '+id+'" value="'+(desc||'')+'">'+'<input type="number" placeholder="0" min="0" step="0.1" value="'+(weight||'')+'">'+'<input type="text" placeholder="L x W x H" value="'+(l&&w&&h?l+' x '+w+' x '+h:'')+'">'+'<span></span>'+'<button onclick="removePkg('+id+')">&#10005;</button>';el('pkg-list').appendChild(div);updatePkgCount()}
+function removePkg(id){var r=el('pkg-'+id);if(r)r.remove();updatePkgCount();if(el('pkg-list').children.length===0)addPkg()}
+function updatePkgCount(){el('pkg-count').textContent=el('pkg-list').children.length+' colis'}
+function getPkgs(){var rows=el('pkg-list').children,pkgs=[];for(var i=0;i<rows.length;i++){var inp=rows[i].querySelectorAll('input'),dims=(inp[2].value||'').replace(/\s/g,'').split(/[xX,]/);pkgs.push({description:inp[0].value||'Colis '+(i+1),weight:parseFloat(inp[1].value)||1,length:parseFloat(dims[0])||12,width:parseFloat(dims[1])||12,height:parseFloat(dims[2])||12})}return pkgs}
+function getRate(){
+  var fp=el('from-postal').value.trim().replace(/\s/g,'').toUpperCase(),tp=el('to-postal').value.trim().replace(/\s/g,'').toUpperCase();
+  if(!fp||!tp){showError('Codes postaux requis.');return}
+  var pkgs=getPkgs();if(pkgs.length===0){showError('Ajoutez au moins un colis.');return}
+  var body={category:'Parcel',paymentType:'Prepaid',deliveryType:'GRD',unitOfMeasurement:'L',
+    sender:{name:'Sender',customerName:'Sender',addressLine1:'',city:el('from-city').value.trim()||'',province:el('from-prov').value,provinceCode:el('from-prov').value,postalCode:fp,country:'CA',countryCode:'CA',contact:{fullName:'Sender',telephone:'0000000000'}},
+    consignee:{name:'Consignee',customerName:'Consignee',addressLine1:'',city:el('to-city').value.trim()||'',province:el('to-prov').value,provinceCode:el('to-prov').value,postalCode:tp,country:'CA',countryCode:'CA',contact:{fullName:'Consignee',telephone:'0000000000'}},
+    parcels:pkgs.map(function(p){return{parcelType:'Box',quantity:1,description:p.description,weight:p.weight,declaredWeight:p.weight,length:p.length,width:p.width,height:p.height,depth:p.height}})};
+  var btn=el('btn-go');btn.disabled=true;btn.textContent='Chargement...';
+  log('Envoi vers /api/gls-rate');log('Corps: '+JSON.stringify(body,null,2));
+  fetch('/api/gls-rate',{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(body)})
+  .then(function(r){log('HTTP '+r.status);return r.text().then(function(t){log('Reponse: '+t);if(!r.ok){var m='Erreur HTTP '+r.status;try{var j=JSON.parse(t);m+=' — '+(j.message||j.error||t)}catch(e){m+=' — '+t}throw new Error(m)}try{return JSON.parse(t)}catch(e){throw new Error('Reponse non-JSON: '+t.substring(0,200))}})})
+  .then(function(data){showResult(data)})
+  .catch(function(err){log('ERREUR: '+err.message);if(err.message.indexOf('Failed to fetch')>=0)showError('Impossible de joindre le serveur.');else if(err.message.indexOf('401')>=0)showError('Authentification refusée (401). Configurez les identifiants via l\'engrenage.');else if(err.message.indexOf('403')>=0)showError('Accès interdit (403). Permission Rate View manquante.');else showError(err.message)})
+  .finally(function(){btn.disabled=false;btn.textContent='Obtenir le tarif'});
+}
+var SL={'Fuel surcharge':'Supplément carburant','QFA':'QFA (ajustement qualité)','Beyond area':'Zone éloignée'};
+function showResult(data){
+  var list=Array.isArray(data)?data:null;
+  if(!list){for(var k in data){if(Array.isArray(data[k])&&data[k].length&&typeof data[k][0]==='object'){list=data[k];break}}}
+  if(!list)list=[data];
+  var neg=list.filter(function(s){return s.accountType==='NEG'});if(neg.length)list=neg;
+  var svc=list[0],total=svc.totalCharge||svc.total||svc.totalCharges||0,transit=svc.transitDays||svc.estimatedDeliveryDays||'';
+  var fc=el('from-city').value||el('from-postal').value,tc=el('to-city').value||el('to-postal').value;
+  var h='<div class="m-route">'+esc(fc)+' &rarr; '+esc(tc);if(transit)h+=' &nbsp;('+transit+' jour(s))';h+='</div>';
+  if(svc.basicCharge)h+=line('Tarif de base',svc.basicCharge);
+  if(svc.weightCharge)h+=line('Supplément poids',svc.weightCharge);
+  if(svc.zoneCharge)h+=line('Supplément zone',svc.zoneCharge);
+  if(svc.otherCharge)h+=line('Autres frais',svc.otherCharge);
+  if(svc.subTotal)h+=line('Sous-total',svc.subTotal,true);
+  var sc=svc.surcharges||svc.accessorials||svc.charges||[];
+  if(Array.isArray(sc)&&sc.length){var f=sc.filter(function(s){return(s.description||s.name||s.code||'').toLowerCase().indexOf('residential')<0});if(f.length){h+='<div class="m-sep">Surcharges</div>';f.forEach(function(s){var nm=s.description||s.name||s.code||'Surcharge';h+=line(SL[nm]||nm,s.amount||s.charge||s.value||0)})}}
+  if(svc.cubicWeight)h+='<div class="m-line" style="color:var(--mut);font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>'+fmt(svc.cubicWeight)+' lb</span></div>';
+  h+='<div class="m-total"><div class="lbl">Total estimé</div><div class="price">'+fmt(total*M)+' $</div></div>';
+  el('modal-body').innerHTML=h;el('modal').classList.add('show');
+}
+function closeModal(){el('modal').classList.remove('show')}
+function line(label,amount,subtle){var s=subtle?' style="font-weight:600"':'';return'<div class="m-line"'+s+'><span class="lbl">'+esc(label)+'</span><span>'+fmt(amount*M)+' CAD</span></div>'}
+function showError(msg){el('modal-body').innerHTML='<div style="background:var(--erb);border:1px solid var(--er);border-radius:6px;padding:1rem;color:var(--er)"><h3 style="font-size:.9rem;margin-bottom:.3rem">Erreur</h3><p style="font-size:.8rem">'+esc(msg)+'</p></div>';el('modal').classList.add('show')}
+function fmt(n){if(n==null)return'--';return parseFloat(n).toFixed(2)}
+function esc(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function clearAll(){el('to-postal').value='';el('to-city').value='';el('to-quick').value='';el('log').textContent='';el('pkg-list').innerHTML='';addPkg()}
+fetch('/api/settings/public').then(function(r){return r.json()}).then(function(d){M=1+((d.factor!=null?d.factor:25)/100)}).catch(function(){});
+addPkg();
+el('to-postal').value='G7K 1C3';el('to-prov').value='QC';el('to-city').value='Chicoutimi';el('to-quick').value='G7K 1C3|QC|Chicoutimi';
+</script>
+</body>
+</html>

@@ -1,14 +1,19 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "gromec-verification",
+  "main": "src/worker.js",
   "compatibility_date": "2026-05-25",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "."
+    "directory": "./public",
+    "binding": "ASSETS"
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "kv_namespaces": [
+    { "binding": "SETTINGS", "id": "TO_REPLACE_AFTER_KV_CREATE" }
   ]
 }
