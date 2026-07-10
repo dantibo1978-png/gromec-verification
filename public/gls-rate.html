@@ -552,6 +552,9 @@ function showResult(data) {
   }
   if (!list) list = [data];
 
+  var neg = list.filter(function(s) { return s.accountType === 'NEG'; });
+  if (neg.length) list = neg;
+
   var html = '';
   list.forEach(function(svc) {
     var acct = svc.accountType || '';
