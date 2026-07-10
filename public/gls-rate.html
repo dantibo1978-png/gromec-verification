@@ -534,45 +534,89 @@ function getRate() {
 }
 
 function showResult(data) {
-  var rates = data.rates || data.services || [data];
-  if (!Array.isArray(rates)) rates = [rates];
+  var list = findRateArray(data);
+  if (!list || !list.length) {
+    el('result').innerHTML = '<div class="result-card"><h3>Réponse brute</h3><pre style="font-size:.75rem;white-space:pre-wrap;max-height:400px;overflow:auto">' + escHtml(JSON.stringify(data, null, 2)) + '</pre></div>';
+    return;
+  }
 
   var html = '';
-  rates.forEach(function(svc) {
-    var name = svc.serviceDescription || svc.serviceName || svc.serviceCode || 'Service GLS';
-    var total = svc.totalCharges || svc.total || svc.baseCharge || '—';
-    var currency = svc.currency || 'CAD';
-    var transit = svc.transitDays || svc.estimatedDeliveryDays || '';
+  var idx = 0;
+  list.forEach(function(svc) {
+    idx++;
+    var name = findVal(svc, ['serviceDescription','serviceName','serviceCode','deliveryType','name','description','service']) || 'Option ' + idx;
+    var transit = findVal(svc, ['transitDays','estimatedDeliveryDays','transitTime','deliveryDays','estimatedTransitDays']);
+    var base = findVal(svc, ['baseCharge','baseRate','basePrice','freightCharge','charge']);
+    var fuel = findVal(svc, ['fuelSurcharge','fuelCharge','fuel']);
+    var total = findVal(svc, ['totalCharges','totalCharge','total','totalPrice','totalRate','grandTotal']);
+    var currency = findVal(svc, ['currency','currencyCode']) || 'CAD';
+
+    var surcharges = findVal(svc, ['surcharges','accessorials','charges','fees']);
+    var taxes = findVal(svc, ['taxes','tax']);
 
     html += '<div class="result-card">';
-    html += '<h3>' + name + (transit ? ' — ' + transit + ' jour(s)' : '') + '</h3>';
+    html += '<h3>' + escHtml(String(name)) + (transit ? ' — ' + transit + ' jour(s)' : '') + '</h3>';
 
-    if (svc.baseCharge) {
-      html += '<div class="result-line"><span class="lbl">Tarif de base</span><span>' + fmt(svc.baseCharge) + ' ' + currency + '</span></div>';
-    }
-    if (svc.fuelSurcharge) {
-      html += '<div class="result-line"><span class="lbl">Supplément carburant</span><span>' + fmt(svc.fuelSurcharge) + ' ' + currency + '</span></div>';
-    }
-    if (svc.surcharges && svc.surcharges.length) {
-      svc.surcharges.forEach(function(s) {
-        html += '<div class="result-line"><span class="lbl">' + (s.description || s.code || 'Surcharge') + '</span><span>' + fmt(s.amount) + ' ' + currency + '</span></div>';
+    if (base != null) html += '<div class="result-line"><span class="lbl">Tarif de base</span><span>' + fmt(base) + ' ' + currency + '</span></div>';
+    if (fuel != null) html += '<div class="result-line"><span class="lbl">Supplément carburant</span><span>' + fmt(fuel) + ' ' + currency + '</span></div>';
+
+    if (Array.isArray(surcharges)) {
+      surcharges.forEach(function(s) {
+        var sName = s.description || s.name || s.code || s.type || 'Surcharge';
+        var sAmt = s.amount || s.charge || s.value || 0;
+        html += '<div class="result-line"><span class="lbl">' + escHtml(String(sName)) + '</span><span>' + fmt(sAmt) + ' ' + currency + '</span></div>';
       });
     }
-    if (svc.taxes && svc.taxes.length) {
-      svc.taxes.forEach(function(t) {
-        html += '<div class="result-line"><span class="lbl">' + (t.description || t.code || 'Taxe') + '</span><span>' + fmt(t.amount) + ' ' + currency + '</span></div>';
+    if (Array.isArray(taxes)) {
+      taxes.forEach(function(t) {
+        var tName = t.description || t.name || t.code || t.type || 'Taxe';
+        var tAmt = t.amount || t.charge || t.value || 0;
+        html += '<div class="result-line"><span class="lbl">' + escHtml(String(tName)) + '</span><span>' + fmt(tAmt) + ' ' + currency + '</span></div>';
       });
     }
 
-    html += '<div class="result-line"><span class="lbl">Total</span><span>' + fmt(total) + ' ' + currency + '</span></div>';
+    if (total != null) html += '<div class="result-line"><span class="lbl">Total</span><span>' + fmt(total) + ' ' + currency + '</span></div>';
+
+    // Show all other numeric fields we didn't catch
+    var shown = ['serviceDescription','serviceName','serviceCode','deliveryType','name','description','service',
+      'transitDays','estimatedDeliveryDays','transitTime','deliveryDays','estimatedTransitDays',
+      'baseCharge','baseRate','basePrice','freightCharge','charge',
+      'fuelSurcharge','fuelCharge','fuel',
+      'totalCharges','totalCharge','total','totalPrice','totalRate','grandTotal',
+      'currency','currencyCode','surcharges','accessorials','charges','fees','taxes','tax'];
+    Object.keys(svc).forEach(function(k) {
+      if (shown.indexOf(k) >= 0) return;
+      var v = svc[k];
+      if (typeof v === 'number') {
+        html += '<div class="result-line"><span class="lbl">' + escHtml(k) + '</span><span>' + fmt(v) + ' ' + currency + '</span></div>';
+      } else if (typeof v === 'string' && v) {
+        html += '<div class="result-line"><span class="lbl">' + escHtml(k) + '</span><span>' + escHtml(v) + '</span></div>';
+      }
+    });
+
     html += '</div>';
   });
 
-  if (!html) {
-    html = '<div class="result-card"><h3>Réponse reçue</h3><pre style="font-size:.75rem;white-space:pre-wrap">' + JSON.stringify(data, null, 2) + '</pre></div>';
-  }
-
   el('result').innerHTML = html;
+}
+
+function findRateArray(data) {
+  if (Array.isArray(data)) return data;
+  var keys = ['rates','services','quotes','options','results','rateQuotes','serviceOptions'];
+  for (var i = 0; i < keys.length; i++) {
+    if (Array.isArray(data[keys[i]])) return data[keys[i]];
+  }
+  for (var k in data) {
+    if (Array.isArray(data[k]) && data[k].length > 0 && typeof data[k][0] === 'object') return data[k];
+  }
+  return [data];
+}
+
+function findVal(obj, keys) {
+  for (var i = 0; i < keys.length; i++) {
+    if (obj[keys[i]] != null) return obj[keys[i]];
+  }
+  return null;
 }
 
 function showError(msg) {
