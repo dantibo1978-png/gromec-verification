@@ -93,15 +93,16 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
         <div>
           <label>Type de livraison</label>
           <select id="delivery-type">
-            <option value="Commercial">Commercial</option>
-            <option value="Residential">Résidentiel</option>
+            <option value="Ground">Terrestre (Ground)</option>
+            <option value="Express">Express</option>
+            <option value="Priority">Prioritaire</option>
           </select>
         </div>
         <div>
           <label>Unité de mesure</label>
           <select id="unit">
-            <option value="Imperial">Impérial (lb / po)</option>
-            <option value="Metric">Métrique (kg / cm)</option>
+            <option value="I">Impérial (lb / po)</option>
+            <option value="M">Métrique (kg / cm)</option>
           </select>
         </div>
       </div>
@@ -404,11 +405,13 @@ function getRate() {
     },
     Parcels: pkgs.map(function(p) {
       return {
+        ParcelType: 'Box',
+        Quantity: 1,
         Description: p.description,
-        Weight: p.weight,
+        DeclaredWeight: p.weight,
         Length: p.length,
         Width: p.width,
-        Height: p.height
+        Depth: p.height
       };
     })
   };
