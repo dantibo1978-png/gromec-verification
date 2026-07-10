@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotation Transport — GLS Canada</title>
+<style>
+:root{--bg:#f5f4f0;--sur:#fff;--brd:#e2e0d8;--txt:#1a1a18;--mut:#6b6b64;--acc:#1a3a5c;--acl:#e8eef5;--ok:#1a6b3a;--okb:#e8f5ee;--er:#8b1a1a;--erb:#fdeaea;--wa:#7a4a00;--wab:#fff3dc}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;background:var(--bg);color:var(--txt);min-height:100vh}
+header{background:var(--acc);color:#fff;padding:1rem 2rem;display:flex;align-items:baseline;gap:1rem}
+header h1{font-size:1.1rem;font-weight:normal}
+header span{font-size:.7rem;opacity:.5;font-family:monospace}
+.layout{max-width:900px;margin:0 auto;padding:1.25rem 2rem;display:flex;flex-direction:column;gap:1.25rem}
+.panel{background:var(--sur);border:1px solid var(--brd);border-radius:6px;overflow:hidden}
+.phd{background:var(--acc);color:#fff;padding:.5rem 1rem;font-size:.72rem;letter-spacing:.07em;text-transform:uppercase;display:flex;align-items:center;gap:.5rem}
+.phd .tag{background:rgba(255,255,255,.2);padding:2px 7px;border-radius:3px;font-size:.66rem}
+.pbd{padding:.9rem}
+label{display:block;font-size:.78rem;color:var(--mut);margin-bottom:.25rem;font-weight:bold;letter-spacing:.03em}
+input,select{width:100%;border:1px solid var(--brd);border-radius:4px;padding:.5rem .65rem;font-size:.82rem;font-family:Georgia,serif;background:var(--bg);color:var(--txt)}
+input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem;margin-bottom:.8rem}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.8rem;margin-bottom:.8rem}
+.full{margin-bottom:.8rem}
+.btn{background:var(--acc);color:#fff;border:none;padding:.6rem 1.5rem;border-radius:4px;font-size:.85rem;cursor:pointer;transition:opacity .15s;font-family:Georgia,serif}
+.btn:hover{opacity:.85}.btn:disabled{opacity:.32;cursor:not-allowed}
+.btn-s{background:transparent;color:var(--acc);border:1px solid var(--acc);padding:.45rem 1rem;font-size:.78rem}
+.help{font-size:.68rem;color:var(--mut);margin-top:.2rem}
+.sb{padding:.5rem .8rem;font-size:.78rem;border-radius:4px;margin-top:.6rem;font-family:monospace;white-space:pre-wrap;word-break:break-all;display:none}
+.sb.i{background:var(--acl);color:var(--acc);display:block}
+.sb.o{background:var(--okb);color:var(--ok);display:block}
+.sb.e{background:var(--erb);color:var(--er);display:block}
+
+.pkg-row{display:grid;grid-template-columns:3fr 2fr 2fr 2fr auto;gap:.5rem;align-items:end;margin-bottom:.5rem}
+.pkg-row input{font-size:.78rem;padding:.4rem .5rem}
+.pkg-row button{background:var(--er);color:#fff;border:none;border-radius:4px;padding:.35rem .6rem;font-size:.75rem;cursor:pointer;height:fit-content}
+.pkg-row button:hover{opacity:.8}
+
+.result-card{background:var(--okb);border:1px solid var(--ok);border-radius:6px;padding:1rem;margin-top:.6rem}
+.result-card h3{color:var(--ok);font-size:.9rem;margin-bottom:.5rem}
+.result-line{display:flex;justify-content:space-between;padding:.3rem 0;border-bottom:1px solid rgba(26,107,58,.15);font-size:.82rem}
+.result-line:last-child{border-bottom:none;font-weight:bold;font-size:.9rem;padding-top:.5rem}
+.result-line .lbl{color:var(--mut)}
+
+.error-card{background:var(--erb);border:1px solid var(--er);border-radius:6px;padding:1rem;margin-top:.6rem}
+.error-card h3{color:var(--er);font-size:.9rem;margin-bottom:.3rem}
+.error-card p{font-size:.8rem;color:var(--er)}
+
+#log-panel{display:none}
+#log-panel.show{display:block}
+#log{font-family:'Courier New',monospace;font-size:.7rem;background:var(--bg);border:1px solid var(--brd);border-radius:4px;padding:.6rem;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Cotation Transport — GLS Canada</h1>
+  <span>v1.0</span>
+</header>
+
+<div class="layout">
+
+  <!-- CONFIG -->
+  <div class="panel">
+    <div class="phd">Configuration API <span class="tag">requis</span></div>
+    <div class="pbd">
+      <div class="row">
+        <div>
+          <label>URL du proxy CORS</label>
+          <input type="text" id="proxy-url" placeholder="https://gls-rate-proxy.votrenom.workers.dev">
+          <div class="help">Le Worker Cloudflare qui relaie vers GLS. Pas de /v1 ni /rate.</div>
+        </div>
+        <div>
+          <label>Environnement</label>
+          <select id="env">
+            <option value="https://sandbox-smart4i.gls-canada.com">Sandbox (test)</option>
+            <option value="https://smart4i.gls-canada.com">Production</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Nom d'utilisateur API</label>
+          <input type="text" id="api-user" placeholder="votre_utilisateur">
+        </div>
+        <div>
+          <label>Mot de passe API</label>
+          <input type="password" id="api-pass" placeholder="votre_mot_de_passe">
+        </div>
+      </div>
+      <div>
+        <button class="btn-s btn" onclick="saveConfig()" style="font-size:.75rem">Sauvegarder dans le navigateur</button>
+        <span id="save-note" style="font-size:.72rem;color:var(--ok);margin-left:.5rem"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPÉDITEUR / DESTINATAIRE -->
+  <div class="panel">
+    <div class="phd">Adresses</div>
+    <div class="pbd">
+      <div class="row">
+        <div>
+          <h4 style="font-size:.82rem;margin-bottom:.6rem;color:var(--acc)">Expéditeur</h4>
+          <div class="full">
+            <label>Code postal</label>
+            <input type="text" id="from-postal" placeholder="H1A 1A1" maxlength="7">
+          </div>
+          <div class="full">
+            <label>Province</label>
+            <select id="from-prov">
+              <option value="QC">Québec</option>
+              <option value="ON">Ontario</option>
+              <option value="AB">Alberta</option>
+              <option value="BC">Colombie-Britannique</option>
+              <option value="MB">Manitoba</option>
+              <option value="SK">Saskatchewan</option>
+              <option value="NS">Nouvelle-Écosse</option>
+              <option value="NB">Nouveau-Brunswick</option>
+              <option value="NL">Terre-Neuve</option>
+              <option value="PE">Île-du-Prince-Édouard</option>
+              <option value="NT">Territoires du Nord-Ouest</option>
+              <option value="NU">Nunavut</option>
+              <option value="YT">Yukon</option>
+            </select>
+          </div>
+          <div class="full">
+            <label>Ville</label>
+            <input type="text" id="from-city" placeholder="Montréal">
+          </div>
+        </div>
+        <div>
+          <h4 style="font-size:.82rem;margin-bottom:.6rem;color:var(--acc)">Destinataire</h4>
+          <div class="full">
+            <label>Code postal</label>
+            <input type="text" id="to-postal" placeholder="M5V 2T6" maxlength="7">
+          </div>
+          <div class="full">
+            <label>Province</label>
+            <select id="to-prov">
+              <option value="ON">Ontario</option>
+              <option value="QC">Québec</option>
+              <option value="AB">Alberta</option>
+              <option value="BC">Colombie-Britannique</option>
+              <option value="MB">Manitoba</option>
+              <option value="SK">Saskatchewan</option>
+              <option value="NS">Nouvelle-Écosse</option>
+              <option value="NB">Nouveau-Brunswick</option>
+              <option value="NL">Terre-Neuve</option>
+              <option value="PE">Île-du-Prince-Édouard</option>
+              <option value="NT">Territoires du Nord-Ouest</option>
+              <option value="NU">Nunavut</option>
+              <option value="YT">Yukon</option>
+            </select>
+          </div>
+          <div class="full">
+            <label>Ville</label>
+            <input type="text" id="to-city" placeholder="Toronto">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COLIS -->
+  <div class="panel">
+    <div class="phd">Colis <span class="tag" id="pkg-count">1 colis</span></div>
+    <div class="pbd">
+      <div style="margin-bottom:.4rem">
+        <div class="pkg-row" style="font-size:.68rem;color:var(--mut);font-weight:bold">
+          <span>Description</span>
+          <span>Poids (lb)</span>
+          <span>Longueur × Largeur × Hauteur (po)</span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+      <div id="pkg-list"></div>
+      <button class="btn-s btn" onclick="addPkg()" style="margin-top:.3rem;font-size:.75rem">+ Ajouter un colis</button>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div style="display:flex;gap:.8rem;align-items:center;flex-wrap:wrap">
+    <button class="btn" id="btn-go" onclick="getRate()">Obtenir le tarif</button>
+    <button class="btn btn-s" onclick="clearAll()">Effacer</button>
+    <label style="font-size:.75rem;color:var(--mut);display:flex;align-items:center;gap:.3rem;cursor:pointer;margin-bottom:0">
+      <input type="checkbox" id="dbg" onchange="toggleLog()"> Afficher le journal
+    </label>
+  </div>
+
+  <!-- RÉSULTAT -->
+  <div id="result"></div>
+
+  <!-- LOG -->
+  <div class="panel" id="log-panel">
+    <div class="phd">Journal</div>
+    <div class="pbd">
+      <div id="log"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var pkgId = 0;
+
+function el(id) { return document.getElementById(id); }
+
+function log(msg) {
+  var d = el('log');
+  var ts = new Date().toLocaleTimeString('fr-CA');
+  d.textContent += '[' + ts + '] ' + msg + '\n';
+  d.scrollTop = d.scrollHeight;
+}
+
+function toggleLog() {
+  el('log-panel').classList.toggle('show', el('dbg').checked);
+}
+
+// ── CONFIG PERSISTANCE ──
+function saveConfig() {
+  var cfg = {
+    proxy: el('proxy-url').value.trim(),
+    env: el('env').value,
+    user: el('api-user').value.trim(),
+    pass: el('api-pass').value.trim(),
+    fromPostal: el('from-postal').value.trim(),
+    fromProv: el('from-prov').value,
+    fromCity: el('from-city').value.trim()
+  };
+  localStorage.setItem('gls-config', JSON.stringify(cfg));
+  el('save-note').textContent = 'Sauvegardé';
+  setTimeout(function() { el('save-note').textContent = ''; }, 2000);
+}
+
+function loadConfig() {
+  try {
+    var cfg = JSON.parse(localStorage.getItem('gls-config'));
+    if (!cfg) return;
+    if (cfg.proxy) el('proxy-url').value = cfg.proxy;
+    if (cfg.env)   el('env').value = cfg.env;
+    if (cfg.user)  el('api-user').value = cfg.user;
+    if (cfg.pass)  el('api-pass').value = cfg.pass;
+    if (cfg.fromPostal) el('from-postal').value = cfg.fromPostal;
+    if (cfg.fromProv)   el('from-prov').value = cfg.fromProv;
+    if (cfg.fromCity)   el('from-city').value = cfg.fromCity;
+  } catch (e) {}
+}
+
+// ── COLIS ──
+function addPkg(desc, weight, l, w, h) {
+  pkgId++;
+  var id = pkgId;
+  var div = document.createElement('div');
+  div.className = 'pkg-row';
+  div.id = 'pkg-' + id;
+  div.innerHTML =
+    '<input type="text" placeholder="Colis ' + id + '" value="' + (desc || '') + '">' +
+    '<input type="number" placeholder="0" min="0" step="0.1" value="' + (weight || '') + '">' +
+    '<input type="text" placeholder="L × W × H" value="' + (l && w && h ? l + ' × ' + w + ' × ' + h : '') + '">' +
+    '<span></span>' +
+    '<button onclick="removePkg(' + id + ')">✕</button>';
+  el('pkg-list').appendChild(div);
+  updatePkgCount();
+}
+
+function removePkg(id) {
+  var row = el('pkg-' + id);
+  if (row) row.remove();
+  updatePkgCount();
+  if (el('pkg-list').children.length === 0) addPkg();
+}
+
+function updatePkgCount() {
+  var n = el('pkg-list').children.length;
+  el('pkg-count').textContent = n + ' colis';
+}
+
+function getPkgs() {
+  var rows = el('pkg-list').children;
+  var pkgs = [];
+  for (var i = 0; i < rows.length; i++) {
+    var inputs = rows[i].querySelectorAll('input');
+    var dims = (inputs[2].value || '').replace(/\s/g, '').split(/[×xX,]/);
+    pkgs.push({
+      description: inputs[0].value || 'Colis ' + (i + 1),
+      weight: parseFloat(inputs[1].value) || 1,
+      length: parseFloat(dims[0]) || 12,
+      width: parseFloat(dims[1]) || 12,
+      height: parseFloat(dims[2]) || 12
+    });
+  }
+  return pkgs;
+}
+
+// ── API CALL ──
+function getRate() {
+  var proxy = el('proxy-url').value.trim().replace(/\/+$/, '');
+  var target = el('env').value;
+  var user = el('api-user').value.trim();
+  var pass = el('api-pass').value.trim();
+
+  if (!proxy) { showError('URL du proxy manquante.'); return; }
+  if (!user || !pass) { showError('Identifiants API manquants.'); return; }
+
+  var fromPostal = el('from-postal').value.trim().replace(/\s/g, '').toUpperCase();
+  var toPostal = el('to-postal').value.trim().replace(/\s/g, '').toUpperCase();
+  if (!fromPostal || !toPostal) { showError('Codes postaux requis.'); return; }
+
+  var pkgs = getPkgs();
+  if (pkgs.length === 0) { showError('Ajoutez au moins un colis.'); return; }
+
+  var body = {
+    from: {
+      address: {
+        postalCode: fromPostal,
+        provinceCode: el('from-prov').value,
+        countryCode: 'CA',
+        city: el('from-city').value.trim() || undefined
+      }
+    },
+    to: {
+      address: {
+        postalCode: toPostal,
+        provinceCode: el('to-prov').value,
+        countryCode: 'CA',
+        city: el('to-city').value.trim() || undefined
+      }
+    },
+    packages: pkgs.map(function(p) {
+      return {
+        description: p.description,
+        weight: { value: p.weight, dimensionUnit: 'LB' },
+        dimension: {
+          length: p.length,
+          width: p.width,
+          height: p.height,
+          dimensionUnit: 'IN'
+        }
+      };
+    })
+  };
+
+  var btn = el('btn-go');
+  btn.disabled = true;
+  btn.textContent = 'Chargement…';
+  el('result').innerHTML = '';
+  log('Envoi vers ' + proxy + '/rate');
+  log('Cible: ' + target);
+  log('Corps: ' + JSON.stringify(body, null, 2));
+
+  var auth = 'Basic ' + btoa(user + ':' + pass);
+
+  fetch(proxy + '/rate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+      'Authorization': auth,
+      'X-Gls-Target': target
+    },
+    body: JSON.stringify(body)
+  })
+  .then(function(r) {
+    log('Statut HTTP: ' + r.status);
+    return r.text().then(function(txt) {
+      log('Réponse brute: ' + txt);
+      if (!r.ok) {
+        var msg = 'Erreur HTTP ' + r.status;
+        try { var j = JSON.parse(txt); msg += ' — ' + (j.message || j.error || txt); } catch(e) { msg += ' — ' + txt; }
+        throw new Error(msg);
+      }
+      try { return JSON.parse(txt); } catch(e) { throw new Error('Réponse non-JSON: ' + txt.substring(0, 200)); }
+    });
+  })
+  .then(function(data) {
+    log('Données parsées: ' + JSON.stringify(data, null, 2));
+    showResult(data);
+  })
+  .catch(function(err) {
+    log('ERREUR: ' + err.message);
+    if (err.message.indexOf('Failed to fetch') >= 0 || err.message.indexOf('NetworkError') >= 0) {
+      showError('Impossible de joindre le proxy. Vérifiez que le Worker est déployé et que l\'URL est correcte.');
+    } else if (err.message.indexOf('401') >= 0) {
+      showError('Authentification refusée (401). Le tunnel fonctionne, mais les identifiants sont incorrects.');
+    } else if (err.message.indexOf('403') >= 0) {
+      showError('Accès interdit (403). Le tunnel fonctionne, mais la permission « Rate View » manque sur votre compte GLS.');
+    } else {
+      showError(err.message);
+    }
+  })
+  .finally(function() {
+    btn.disabled = false;
+    btn.textContent = 'Obtenir le tarif';
+  });
+}
+
+function showResult(data) {
+  var rates = data.rates || data.services || [data];
+  if (!Array.isArray(rates)) rates = [rates];
+
+  var html = '';
+  rates.forEach(function(svc) {
+    var name = svc.serviceDescription || svc.serviceName || svc.serviceCode || 'Service GLS';
+    var total = svc.totalCharges || svc.total || svc.baseCharge || '—';
+    var currency = svc.currency || 'CAD';
+    var transit = svc.transitDays || svc.estimatedDeliveryDays || '';
+
+    html += '<div class="result-card">';
+    html += '<h3>' + name + (transit ? ' — ' + transit + ' jour(s)' : '') + '</h3>';
+
+    if (svc.baseCharge) {
+      html += '<div class="result-line"><span class="lbl">Tarif de base</span><span>' + fmt(svc.baseCharge) + ' ' + currency + '</span></div>';
+    }
+    if (svc.fuelSurcharge) {
+      html += '<div class="result-line"><span class="lbl">Supplément carburant</span><span>' + fmt(svc.fuelSurcharge) + ' ' + currency + '</span></div>';
+    }
+    if (svc.surcharges && svc.surcharges.length) {
+      svc.surcharges.forEach(function(s) {
+        html += '<div class="result-line"><span class="lbl">' + (s.description || s.code || 'Surcharge') + '</span><span>' + fmt(s.amount) + ' ' + currency + '</span></div>';
+      });
+    }
+    if (svc.taxes && svc.taxes.length) {
+      svc.taxes.forEach(function(t) {
+        html += '<div class="result-line"><span class="lbl">' + (t.description || t.code || 'Taxe') + '</span><span>' + fmt(t.amount) + ' ' + currency + '</span></div>';
+      });
+    }
+
+    html += '<div class="result-line"><span class="lbl">Total</span><span>' + fmt(total) + ' ' + currency + '</span></div>';
+    html += '</div>';
+  });
+
+  if (!html) {
+    html = '<div class="result-card"><h3>Réponse reçue</h3><pre style="font-size:.75rem;white-space:pre-wrap">' + JSON.stringify(data, null, 2) + '</pre></div>';
+  }
+
+  el('result').innerHTML = html;
+}
+
+function showError(msg) {
+  el('result').innerHTML = '<div class="error-card"><h3>Erreur</h3><p>' + escHtml(msg) + '</p></div>';
+}
+
+function fmt(n) {
+  if (n == null || n === '—') return '—';
+  return parseFloat(n).toFixed(2);
+}
+
+function escHtml(s) {
+  var d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function clearAll() {
+  el('to-postal').value = '';
+  el('to-city').value = '';
+  el('result').innerHTML = '';
+  el('log').textContent = '';
+  el('pkg-list').innerHTML = '';
+  addPkg();
+}
+
+// ── INIT ──
+loadConfig();
+addPkg();
+</script>
+</body>
+</html>
