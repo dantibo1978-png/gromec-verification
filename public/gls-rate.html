@@ -66,16 +66,14 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
     <div class="pbd">
       <div class="row">
         <div>
-          <label>URL du proxy CORS</label>
-          <input type="text" id="proxy-url" placeholder="https://gls-rate-proxy.votrenom.workers.dev">
-          <div class="help">Le Worker Cloudflare qui relaie vers GLS. Pas de /v1 ni /rate.</div>
-        </div>
-        <div>
-          <label>Environnement</label>
+          <label>Environnement GLS</label>
           <select id="env">
             <option value="https://sandbox-smart4i.gls-canada.com">Sandbox (test)</option>
             <option value="https://smart4i.gls-canada.com">Production</option>
           </select>
+          <div class="help">Le proxy CORS est intégré — aucune configuration requise.</div>
+        </div>
+        <div>
         </div>
       </div>
       <div class="row">
@@ -271,7 +269,6 @@ function fillAddr(prefix) {
 // ── CONFIG PERSISTANCE ──
 function saveConfig() {
   var cfg = {
-    proxy: el('proxy-url').value.trim(),
     env: el('env').value,
     user: el('api-user').value.trim(),
     pass: el('api-pass').value.trim(),
@@ -288,7 +285,6 @@ function loadConfig() {
   try {
     var cfg = JSON.parse(localStorage.getItem('gls-config'));
     if (!cfg) return;
-    if (cfg.proxy) el('proxy-url').value = cfg.proxy;
     if (cfg.env)   el('env').value = cfg.env;
     if (cfg.user)  el('api-user').value = cfg.user;
     if (cfg.pass)  el('api-pass').value = cfg.pass;
@@ -346,12 +342,11 @@ function getPkgs() {
 
 // ── API CALL ──
 function getRate() {
-  var proxy = el('proxy-url').value.trim().replace(/\/+$/, '');
+  var proxy = '/api/gls-rate';
   var target = el('env').value;
   var user = el('api-user').value.trim();
   var pass = el('api-pass').value.trim();
 
-  if (!proxy) { showError('URL du proxy manquante.'); return; }
   if (!user || !pass) { showError('Identifiants API manquants.'); return; }
 
   var fromPostal = el('from-postal').value.trim().replace(/\s/g, '').toUpperCase();
@@ -396,13 +391,13 @@ function getRate() {
   btn.disabled = true;
   btn.textContent = 'Chargement…';
   el('result').innerHTML = '';
-  log('Envoi vers ' + proxy + '/rate');
+  log('Envoi vers ' + proxy);
   log('Cible: ' + target);
   log('Corps: ' + JSON.stringify(body, null, 2));
 
   var auth = 'Basic ' + btoa(user + ':' + pass);
 
-  fetch(proxy + '/rate', {
+  fetch(proxy, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
