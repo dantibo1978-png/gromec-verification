@@ -589,7 +589,7 @@ function showResult(data) {
   var toCity = el('to-city').value || el('to-postal').value;
 
   var html = '';
-  html += '<div class="modal-route">' + escHtml(fromCity) + ' &rarr; ' + escHtml(toCity);
+  html += '<div class="route">' + escHtml(fromCity) + ' &rarr; ' + escHtml(toCity);
   if (transit) html += ' &nbsp;(' + transit + ' jour(s))';
   html += '</div>';
 
@@ -601,34 +601,54 @@ function showResult(data) {
 
   var surcharges = svc.surcharges || svc.accessorials || svc.charges || [];
   if (Array.isArray(surcharges) && surcharges.length) {
-    html += '<div style="border-top:1px solid var(--brd);margin:.5rem 0;padding-top:.4rem;font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em">Surcharges</div>';
-    surcharges.forEach(function(s) {
-      var nm = s.description || s.name || s.code || 'Surcharge';
-      nm = SURCHARGE_LABELS[nm] || nm;
-      html += line(nm, s.amount || s.charge || s.value || 0);
+    var filtered = surcharges.filter(function(s) {
+      var nm = (s.description || s.name || s.code || '').toLowerCase();
+      return nm.indexOf('residential') < 0;
     });
+    if (filtered.length) {
+      html += '<div class="sep">Surcharges</div>';
+      filtered.forEach(function(s) {
+        var nm = s.description || s.name || s.code || 'Surcharge';
+        nm = SURCHARGE_LABELS[nm] || nm;
+        html += line(nm, s.amount || s.charge || s.value || 0);
+      });
+    }
   }
 
-  if (svc.cubicWeight) html += '<div class="result-line" style="color:var(--mut);font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>' + fmt(svc.cubicWeight) + ' lb</span></div>';
+  if (svc.cubicWeight) html += '<div class="line" style="color:#6b6b64;font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>' + fmt(svc.cubicWeight) + ' lb</span></div>';
 
-  html += '<div class="modal-total"><div class="price-label">Total estimé</div><div class="price">' + fmt(total) + ' $</div></div>';
+  html += '<div class="total-box"><div class="label">Total estimé</div><div class="price">' + fmt(total) + ' $</div></div>';
 
-  el('modal-body').innerHTML = html;
-  el('modal').classList.add('show');
+  openPopup(html);
 }
 
-function closeModal() {
-  el('modal').classList.remove('show');
+function openPopup(content) {
+  var w = window.open('', 'gls_rate', 'width=480,height=520,scrollbars=yes,resizable=yes');
+  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cotation GLS</title><style>' +
+    'body{font-family:Georgia,serif;margin:0;padding:1.2rem;background:#f5f4f0;color:#1a1a18}' +
+    '.route{text-align:center;padding-bottom:.8rem;border-bottom:1px solid #e2e0d8;margin-bottom:.8rem;font-size:.9rem;color:#1a3a5c}' +
+    '.line{display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid #e2e0d8;font-size:.84rem}' +
+    '.line:last-of-type{border-bottom:none}' +
+    '.line .lbl{color:#6b6b64}' +
+    '.bold{font-weight:600}' +
+    '.sep{border-top:1px solid #e2e0d8;margin:.5rem 0;padding-top:.4rem;font-size:.68rem;color:#6b6b64;text-transform:uppercase;letter-spacing:.05em}' +
+    '.total-box{text-align:center;padding:1rem 0 .5rem;border-top:2px solid #1a6b3a;margin-top:.8rem}' +
+    '.total-box .price{font-size:2.2rem;font-weight:bold;color:#1a6b3a}' +
+    '.total-box .label{font-size:.75rem;color:#6b6b64;text-transform:uppercase;letter-spacing:.05em}' +
+    '.err{background:#fdeaea;border:1px solid #8b1a1a;border-radius:6px;padding:1rem;color:#8b1a1a}' +
+    '.err h3{font-size:.9rem;margin-bottom:.3rem}' +
+    '</style></head><body>' + content + '</body></html>');
+  w.document.close();
+  w.focus();
 }
 
 function line(label, amount, subtle) {
-  var style = subtle ? ' style="font-weight:600"' : '';
-  return '<div class="result-line"' + style + '><span class="lbl">' + escHtml(label) + '</span><span>' + fmt(amount) + ' CAD</span></div>';
+  var cls = subtle ? ' bold' : '';
+  return '<div class="line' + cls + '"><span class="lbl">' + escHtml(label) + '</span><span>' + fmt(amount) + ' CAD</span></div>';
 }
 
 function showError(msg) {
-  el('modal-body').innerHTML = '<div class="error-card"><h3>Erreur</h3><p>' + escHtml(msg) + '</p></div>';
-  el('modal').classList.add('show');
+  openPopup('<div class="err"><h3>Erreur</h3><p>' + escHtml(msg) + '</p></div>');
 }
 
 function fmt(n) {
