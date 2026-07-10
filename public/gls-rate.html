@@ -55,6 +55,13 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
 .modal{background:var(--sur);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.25);max-width:500px;width:90%;max-height:85vh;overflow-y:auto;animation:modalIn .2s ease}
 @keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
 .modal-header{background:var(--acc);color:#fff;padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;border-radius:8px 8px 0 0}
+.m-route{text-align:center;padding-bottom:.8rem;border-bottom:1px solid var(--brd);margin-bottom:.8rem;font-size:.9rem;color:var(--acc)}
+.m-line{display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--brd);font-size:.84rem}
+.m-line .lbl{color:var(--mut)}
+.m-sep{border-top:1px solid var(--brd);margin:.5rem 0;padding-top:.4rem;font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.m-total{text-align:center;padding:1rem 0 .5rem;border-top:2px solid var(--ok);margin-top:.8rem}
+.m-total .price{font-size:2.2rem;font-weight:bold;color:var(--ok)}
+.m-total .lbl{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
 .modal-header h3{font-size:.9rem;font-weight:normal}
 .modal-close{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;padding:0 .3rem;opacity:.7}
 .modal-close:hover{opacity:1}
@@ -589,7 +596,7 @@ function showResult(data) {
   var toCity = el('to-city').value || el('to-postal').value;
 
   var html = '';
-  html += '<div class="route">' + escHtml(fromCity) + ' &rarr; ' + escHtml(toCity);
+  html += '<div class="m-route">' + escHtml(fromCity) + ' &rarr; ' + escHtml(toCity);
   if (transit) html += ' &nbsp;(' + transit + ' jour(s))';
   html += '</div>';
 
@@ -606,7 +613,7 @@ function showResult(data) {
       return nm.indexOf('residential') < 0;
     });
     if (filtered.length) {
-      html += '<div class="sep">Surcharges</div>';
+      html += '<div class="m-sep">Surcharges</div>';
       filtered.forEach(function(s) {
         var nm = s.description || s.name || s.code || 'Surcharge';
         nm = SURCHARGE_LABELS[nm] || nm;
@@ -615,40 +622,26 @@ function showResult(data) {
     }
   }
 
-  if (svc.cubicWeight) html += '<div class="line" style="color:#6b6b64;font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>' + fmt(svc.cubicWeight) + ' lb</span></div>';
+  if (svc.cubicWeight) html += '<div class="m-line" style="color:var(--mut);font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>' + fmt(svc.cubicWeight) + ' lb</span></div>';
 
-  html += '<div class="total-box"><div class="label">Total estimé</div><div class="price">' + fmt(total) + ' $</div></div>';
+  html += '<div class="m-total"><div class="lbl">Total estimé</div><div class="price">' + fmt(total) + ' $</div></div>';
 
-  openPopup(html);
+  el('modal-body').innerHTML = html;
+  el('modal').classList.add('show');
 }
 
-function openPopup(content) {
-  var w = window.open('', 'gls_rate', 'width=480,height=520,scrollbars=yes,resizable=yes');
-  w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Cotation GLS</title><style>' +
-    'body{font-family:Georgia,serif;margin:0;padding:1.2rem;background:#f5f4f0;color:#1a1a18}' +
-    '.route{text-align:center;padding-bottom:.8rem;border-bottom:1px solid #e2e0d8;margin-bottom:.8rem;font-size:.9rem;color:#1a3a5c}' +
-    '.line{display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid #e2e0d8;font-size:.84rem}' +
-    '.line:last-of-type{border-bottom:none}' +
-    '.line .lbl{color:#6b6b64}' +
-    '.bold{font-weight:600}' +
-    '.sep{border-top:1px solid #e2e0d8;margin:.5rem 0;padding-top:.4rem;font-size:.68rem;color:#6b6b64;text-transform:uppercase;letter-spacing:.05em}' +
-    '.total-box{text-align:center;padding:1rem 0 .5rem;border-top:2px solid #1a6b3a;margin-top:.8rem}' +
-    '.total-box .price{font-size:2.2rem;font-weight:bold;color:#1a6b3a}' +
-    '.total-box .label{font-size:.75rem;color:#6b6b64;text-transform:uppercase;letter-spacing:.05em}' +
-    '.err{background:#fdeaea;border:1px solid #8b1a1a;border-radius:6px;padding:1rem;color:#8b1a1a}' +
-    '.err h3{font-size:.9rem;margin-bottom:.3rem}' +
-    '</style></head><body>' + content + '</body></html>');
-  w.document.close();
-  w.focus();
+function closeModal() {
+  el('modal').classList.remove('show');
 }
 
 function line(label, amount, subtle) {
-  var cls = subtle ? ' bold' : '';
-  return '<div class="line' + cls + '"><span class="lbl">' + escHtml(label) + '</span><span>' + fmt(amount) + ' CAD</span></div>';
+  var style = subtle ? ' style="font-weight:600"' : '';
+  return '<div class="m-line"' + style + '><span class="lbl">' + escHtml(label) + '</span><span>' + fmt(amount) + ' CAD</span></div>';
 }
 
 function showError(msg) {
-  openPopup('<div class="err"><h3>Erreur</h3><p>' + escHtml(msg) + '</p></div>');
+  el('modal-body').innerHTML = '<div style="background:var(--erb);border:1px solid var(--er);border-radius:6px;padding:1rem;color:var(--er)"><h3 style="font-size:.9rem;margin-bottom:.3rem">Erreur</h3><p style="font-size:.8rem">' + escHtml(msg) + '</p></div>';
+  el('modal').classList.add('show');
 }
 
 function fmt(n) {
