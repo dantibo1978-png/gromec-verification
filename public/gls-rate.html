@@ -49,6 +49,22 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
 #log-panel{display:none}
 #log-panel.show{display:block}
 #log{font-family:'Courier New',monospace;font-size:.7rem;background:var(--bg);border:1px solid var(--brd);border-radius:4px;padding:.6rem;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--sur);border-radius:8px;box-shadow:0 8px 32px rgba(0,0,0,.25);max-width:500px;width:90%;max-height:85vh;overflow-y:auto;animation:modalIn .2s ease}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal-header{background:var(--acc);color:#fff;padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;border-radius:8px 8px 0 0}
+.modal-header h3{font-size:.9rem;font-weight:normal}
+.modal-close{background:none;border:none;color:#fff;font-size:1.3rem;cursor:pointer;padding:0 .3rem;opacity:.7}
+.modal-close:hover{opacity:1}
+.modal-body{padding:1.2rem}
+.modal .result-card{margin-top:0;border:none;padding:0;background:transparent}
+.modal .result-card h3{display:none}
+.modal-total{text-align:center;padding:1rem 0 .5rem;border-top:2px solid var(--ok);margin-top:.8rem}
+.modal-total .price{font-size:2rem;font-weight:bold;color:var(--ok)}
+.modal-total .price-label{font-size:.75rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em}
+.modal-route{text-align:center;padding-bottom:.8rem;border-bottom:1px solid var(--brd);margin-bottom:.8rem;font-size:.85rem;color:var(--acc)}
 </style>
 </head>
 <body>
@@ -301,8 +317,19 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
     </label>
   </div>
 
-  <!-- RÉSULTAT -->
-  <div id="result"></div>
+  <!-- RÉSULTAT (caché, utilisé comme fallback) -->
+  <div id="result" style="display:none"></div>
+
+  <!-- MODAL RÉSULTAT -->
+  <div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Cotation GLS</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
 
   <!-- LOG -->
   <div class="panel" id="log-panel">
@@ -555,40 +582,43 @@ function showResult(data) {
   var neg = list.filter(function(s) { return s.accountType === 'NEG'; });
   if (neg.length) list = neg;
 
+  var svc = list[0];
+  var total = svc.totalCharge || svc.total || svc.totalCharges || 0;
+  var transit = svc.transitDays || svc.estimatedDeliveryDays || '';
+  var fromCity = el('from-city').value || el('from-postal').value;
+  var toCity = el('to-city').value || el('to-postal').value;
+
   var html = '';
-  list.forEach(function(svc) {
-    var acct = svc.accountType || '';
-    var rate = svc.rateType || '';
-    var title = (ACCOUNT_LABELS[acct] || acct || 'Tarif') + ' — ' + (RATE_LABELS[rate] || rate || 'GRD');
-    var total = svc.totalCharge || svc.total || svc.totalCharges || 0;
-    var transit = svc.transitDays || svc.estimatedDeliveryDays || '';
+  html += '<div class="modal-route">' + escHtml(fromCity) + ' &rarr; ' + escHtml(toCity);
+  if (transit) html += ' &nbsp;(' + transit + ' jour(s))';
+  html += '</div>';
 
-    html += '<div class="result-card">';
-    html += '<h3>' + escHtml(title) + (transit ? ' <span style="font-weight:normal;font-size:.8rem">(' + transit + ' jour(s))</span>' : '') + '</h3>';
+  if (svc.basicCharge) html += line('Tarif de base', svc.basicCharge);
+  if (svc.weightCharge) html += line('Supplément poids', svc.weightCharge);
+  if (svc.zoneCharge) html += line('Supplément zone', svc.zoneCharge);
+  if (svc.otherCharge) html += line('Autres frais', svc.otherCharge);
+  if (svc.subTotal) html += line('Sous-total', svc.subTotal, true);
 
-    if (svc.basicCharge) html += line('Tarif de base', svc.basicCharge);
-    if (svc.weightCharge) html += line('Supplément poids', svc.weightCharge);
-    if (svc.zoneCharge) html += line('Supplément zone', svc.zoneCharge);
-    if (svc.otherCharge) html += line('Autres frais', svc.otherCharge);
-    if (svc.subTotal) html += line('Sous-total', svc.subTotal, true);
+  var surcharges = svc.surcharges || svc.accessorials || svc.charges || [];
+  if (Array.isArray(surcharges) && surcharges.length) {
+    html += '<div style="border-top:1px solid var(--brd);margin:.5rem 0;padding-top:.4rem;font-size:.68rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em">Surcharges</div>';
+    surcharges.forEach(function(s) {
+      var nm = s.description || s.name || s.code || 'Surcharge';
+      nm = SURCHARGE_LABELS[nm] || nm;
+      html += line(nm, s.amount || s.charge || s.value || 0);
+    });
+  }
 
-    var surcharges = svc.surcharges || svc.accessorials || svc.charges || [];
-    if (Array.isArray(surcharges) && surcharges.length) {
-      html += '<div style="border-top:1px solid rgba(26,107,58,.2);margin:.4rem 0;padding-top:.3rem;font-size:.7rem;color:var(--mut);text-transform:uppercase;letter-spacing:.05em">Surcharges</div>';
-      surcharges.forEach(function(s) {
-        var nm = s.description || s.name || s.code || 'Surcharge';
-        nm = SURCHARGE_LABELS[nm] || nm;
-        html += line(nm, s.amount || s.charge || s.value || 0);
-      });
-    }
+  if (svc.cubicWeight) html += '<div class="result-line" style="color:var(--mut);font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>' + fmt(svc.cubicWeight) + ' lb</span></div>';
 
-    if (svc.cubicWeight) html += '<div class="result-line" style="color:var(--mut);font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>' + fmt(svc.cubicWeight) + ' lb</span></div>';
+  html += '<div class="modal-total"><div class="price-label">Total estimé</div><div class="price">' + fmt(total) + ' $</div></div>';
 
-    html += '<div class="result-line" style="border-top:2px solid var(--ok);margin-top:.4rem;padding-top:.5rem"><span class="lbl" style="font-weight:bold;font-size:.9rem">Total</span><span style="font-weight:bold;font-size:1.1rem">' + fmt(total) + ' CAD</span></div>';
-    html += '</div>';
-  });
+  el('modal-body').innerHTML = html;
+  el('modal').classList.add('show');
+}
 
-  el('result').innerHTML = html;
+function closeModal() {
+  el('modal').classList.remove('show');
 }
 
 function line(label, amount, subtle) {
@@ -597,7 +627,8 @@ function line(label, amount, subtle) {
 }
 
 function showError(msg) {
-  el('result').innerHTML = '<div class="error-card"><h3>Erreur</h3><p>' + escHtml(msg) + '</p></div>';
+  el('modal-body').innerHTML = '<div class="error-card"><h3>Erreur</h3><p>' + escHtml(msg) + '</p></div>';
+  el('modal').classList.add('show');
 }
 
 function fmt(n) {
