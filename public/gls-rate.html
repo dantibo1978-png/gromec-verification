@@ -93,17 +93,25 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
         <div>
           <label>Type de livraison</label>
           <select id="delivery-type">
-            <option value="Ground">Terrestre (Ground)</option>
-            <option value="Express">Express</option>
-            <option value="Priority">Prioritaire</option>
+            <option value="GRD">Terrestre (Ground)</option>
+            <option value="EXP">Express</option>
+            <option value="PRI">Prioritaire</option>
           </select>
         </div>
         <div>
           <label>Unité de mesure</label>
           <select id="unit">
-            <option value="I">Impérial (lb / po)</option>
-            <option value="M">Métrique (kg / cm)</option>
+            <option value="L">Impérial (lb / po)</option>
+            <option value="K">Métrique (kg / cm)</option>
           </select>
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>Numéro de compte (billing)</label>
+          <input type="text" id="billing" placeholder="Votre # de compte GLS">
+        </div>
+        <div>
         </div>
       </div>
       <div class="row">
@@ -335,6 +343,7 @@ function fillAddr(prefix) {
 // ── CONFIG PERSISTANCE ──
 function saveConfig() {
   var cfg = {
+    billing: el('billing').value.trim(),
     env: el('env').value,
     user: el('api-user').value.trim(),
     pass: el('api-pass').value.trim(),
@@ -351,6 +360,7 @@ function loadConfig() {
   try {
     var cfg = JSON.parse(localStorage.getItem('gls-config'));
     if (!cfg) return;
+    if (cfg.billing) el('billing').value = cfg.billing;
     if (cfg.env)   el('env').value = cfg.env;
     if (cfg.user)  el('api-user').value = cfg.user;
     if (cfg.pass)  el('api-pass').value = cfg.pass;
@@ -422,35 +432,52 @@ function getRate() {
   var pkgs = getPkgs();
   if (pkgs.length === 0) { showError('Ajoutez au moins un colis.'); return; }
 
+  var billing = el('billing').value.trim();
+
   var body = {
-    Category: el('category').value,
-    PaymentType: el('payment-type').value,
-    DeliveryType: el('delivery-type').value,
-    UnitOfMeasurement: el('unit').value,
-    Sender: {
-      PostalCode: fromPostal,
-      ProvinceCode: el('from-prov').value,
-      CountryCode: 'CA',
-      City: el('from-city').value.trim() || undefined
+    category: el('category').value,
+    paymentType: el('payment-type').value,
+    deliveryType: el('delivery-type').value,
+    unitOfMeasurement: el('unit').value,
+    sender: {
+      name: 'Sender',
+      customerName: 'Sender',
+      addressLine1: '',
+      city: el('from-city').value.trim() || '',
+      province: el('from-prov').value,
+      provinceCode: el('from-prov').value,
+      postalCode: fromPostal,
+      country: 'CA',
+      countryCode: 'CA',
+      contact: { fullName: 'Sender', telephone: '0000000000' }
     },
-    Consignee: {
-      PostalCode: toPostal,
-      ProvinceCode: el('to-prov').value,
-      CountryCode: 'CA',
-      City: el('to-city').value.trim() || undefined
+    consignee: {
+      name: 'Consignee',
+      customerName: 'Consignee',
+      addressLine1: '',
+      city: el('to-city').value.trim() || '',
+      province: el('to-prov').value,
+      provinceCode: el('to-prov').value,
+      postalCode: toPostal,
+      country: 'CA',
+      countryCode: 'CA',
+      contact: { fullName: 'Consignee', telephone: '0000000000' }
     },
-    Parcels: pkgs.map(function(p) {
+    parcels: pkgs.map(function(p) {
       return {
-        ParcelType: 'Box',
-        Quantity: 1,
-        Description: p.description,
-        DeclaredWeight: p.weight,
-        Length: p.length,
-        Width: p.width,
-        Depth: p.height
+        parcelType: 'Box',
+        quantity: 1,
+        description: p.description,
+        weight: p.weight,
+        declaredWeight: p.weight,
+        length: p.length,
+        width: p.width,
+        height: p.height,
+        depth: p.height
       };
     })
   };
+  if (billing) body.billing = billing;
 
   var btn = el('btn-go');
   btn.disabled = true;
