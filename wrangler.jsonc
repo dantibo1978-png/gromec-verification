@@ -12,5 +12,8 @@
   },
   "compatibility_flags": [
     "nodejs_compat"
+  ],
+  "kv_namespaces": [
+    { "binding": "SETTINGS", "id": "TO_REPLACE_AFTER_KV_CREATE" }
   ]
 }
