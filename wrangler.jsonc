@@ -14,6 +14,6 @@
     "nodejs_compat"
   ],
   "kv_namespaces": [
-    { "binding": "SETTINGS", "id": "TO_REPLACE_AFTER_KV_CREATE" }
+    { "binding": "SETTINGS", "id": "930e442188194e738e1ad69455d8d9bd" }
   ]
 }
