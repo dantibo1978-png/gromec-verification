@@ -96,6 +96,17 @@ async function handleGlsProxy(request, url, env) {
   const subpath = url.pathname.replace('/api/gls-rate', '') || '';
   const upstream = target + '/v1/rate' + subpath + url.search;
 
+  let body;
+  try {
+    body = JSON.parse(await request.text());
+  } catch {
+    return new Response('Invalid JSON', { status: 400, headers: CORS });
+  }
+
+  if (cfg.billing && !body.billing) {
+    body.billing = cfg.billing;
+  }
+
   const res = await fetch(upstream, {
     method: 'POST',
     headers: {
@@ -103,7 +114,7 @@ async function handleGlsProxy(request, url, env) {
       'Content-Type': 'application/json',
       'Accept': 'application/json'
     },
-    body: await request.text()
+    body: JSON.stringify(body)
   });
 
   return new Response(res.body, {
