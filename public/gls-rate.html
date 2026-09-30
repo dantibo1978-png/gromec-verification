@@ -67,7 +67,7 @@ input:focus,select:focus{outline:2px solid var(--acc);border-color:transparent}
 
 <header>
   <h1>Cotation Transport — GLS Canada</h1>
-  <span>v2.1 — maj. 2026-09-30 14:00</span>
+  <span>v2.2 — maj. 2026-09-30 15:00</span>
   <button class="gear-btn" onclick="openCfg()" title="Paramètres">
     <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.49.49 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 00-.48-.41h-3.84a.48.48 0 00-.48.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 00-.59.22L2.74 8.87a.48.48 0 00.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.26.41.48.41h3.84c.24 0 .44-.17.48-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1112 8.4a3.6 3.6 0 010 7.2z"/></svg>
   </button>
@@ -294,7 +294,11 @@ function showResult(data){
   if(svc.basicCharge&&(svc.weightCharge||svc.zoneCharge||svc.otherCharge)){h+=line2('Sous-total',runTotal,true)}
   var sc=svc.surcharges||svc.accessorials||svc.charges||[];
   if(Array.isArray(sc)&&sc.length){var f=sc.filter(function(s){return(s.description||s.name||s.code||'').toLowerCase().indexOf('residential')<0});if(f.length){h+='<div class="m-sep">Surcharges</div>';f.forEach(function(s){var nm=s.description||s.name||s.code||'Surcharge';var v=rnd((s.amount||s.charge||s.value||0)*M);runTotal+=v;h+=line2(SL[nm]||nm,v)})}}
+  if(svc.fuelCharge){var v=rnd(svc.fuelCharge*M);runTotal+=v;h+=line2('Supplément carburant',v)}
+  if(svc.fuelSurcharge){var v=rnd(svc.fuelSurcharge*M);runTotal+=v;h+=line2('Supplément carburant',v)}
   if(svc.cubicWeight)h+='<div class="m-line" style="color:var(--mut);font-size:.75rem"><span class="lbl">Poids volumétrique</span><span>'+fmt(svc.cubicWeight)+' lb</span></div>';
+  var tax=svc.taxCharges||svc.taxes||svc.taxAmount||svc.gst||0;
+  if(typeof tax==='object'&&tax){var tTotal=0;if(tax.gst){tTotal+=rnd(tax.gst*M)}if(tax.pst||tax.qst){tTotal+=rnd((tax.pst||tax.qst)*M)}if(tax.hst){tTotal+=rnd(tax.hst*M)}if(tTotal){runTotal+=tTotal;h+=line2('Taxes',tTotal)}}else if(tax>0){var v=rnd(tax*M);runTotal+=v;h+=line2('Taxes',v)}
   h+='<div class="m-total"><div class="lbl">Total estimé</div><div class="price">'+fmt(runTotal)+' $</div></div>';
   el('modal-body').innerHTML=h;el('modal').classList.add('show');
 }
